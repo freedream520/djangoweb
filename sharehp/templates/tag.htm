@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="/static/sharehp/css/test.css" rel="stylesheet" media="screen">
+	</head>
+
+	<body>
+        {% include "header.htm" %}
+		<!-- 内容区 -->
+		<div  class="container">
+			<div class="row">
+				<!-- 左边资源list-->
+				<div class="span8">
+					{% for res in resList%}
+					<div class="item-wall clearfix">
+						<div class="item-author">
+							<a href="#"><img class="img-circle" src="/static/sharehp/img/backtop2013.png"></a>
+							<a class="nickname">{{res.nickname}}</a>
+							<span class="create-time">{{res.date}}</span>
+						</div>
+						<div class="item-content">
+							<p>{{res.title}}</p>
+
+							{% ifequal tag "image" %}
+							<a href="/detail/{{tag}}/{{res.id}}/" target="_blank">
+								<img src="http://sharehp.qiniudn.com/thumbnail/{{res.thumbnail}}">
+							</a>
+							{% else %}
+							<a style="position:relative" class="thumb" href="/detail/{{tag}}/{{res.id}}/" target="_blank">
+								<img src="http://sharehp.qiniudn.com/thumbnail/{{res.thumbnail}}">
+								<span class="play-icon"></span>
+							</a>
+							{% endifequal %}
+				    	</div>
+			            <div class="item-footer">
+							<a id="good-{{res.id}}" href="" title="称赞" class="btn-icon good"><i class="icon-thumbs-up"></i> <span>{{res.good}}</span></a>
+							<a id="bad-{{res.id}}"  href="" title="鄙视" class="btn-icon bad"><i class="icon-thumbs-down"></i> <span>{{res.bad}} </span></a>
+							<a class="pull-right" href="/detail/{{tag}}/{{res.id}}/" target="_blank">评论({{res.comments}})</a>
+			            </div>
+					</div>
+					{% endfor %}
+					<div id="pagination"></div>
+		    	</div>
+
+				<!-- 右边目录-->
+				<div class="span4">
+					<div class="span4 ">
+						<!-- 微信推广 -->
+						<div class="sidebar-wall">
+							<img src="/static/sharehp/img/wx.png">					
+						</div>
+					</div>
+		    	</div>
+		    </div>
+		</div>
+        {% include 'footer.htm' %}
+
+		<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+    	<script src="/static/sharehp/js/bootstrap.min.js"></script>
+    	<script src="/static/sharehp/js/bootstrap-paginator.js"></script>
+    	<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
+    	<script src="/static/sharehp/js/common.js"></script>
+    	<script type="text/javascript">
+			initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/tag/{{tag}}/?page=")
+    	</script>
+	</body>
+</html>
+

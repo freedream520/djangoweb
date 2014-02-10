@@ -1,0 +1,661 @@
+
+body {
+	background-image: url(/static/sharehp/img/bg.gif);
+	font: normal 13px "宋体", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #4A4A4A ;
+	line-height: 20px;
+}
+
+div {
+display: block;
+}
+
+.jumbotron {
+	//position: relative;
+	padding-top: 55px;
+	padding-bottom: 25px;
+	color: #fff;
+	text-align: center;
+	text-shadow: 0 1px 3px rgba(0,0,0,.4), 0 0 30px rgba(0,0,0,.075);
+	background: #020031;
+	background: -moz-linear-gradient(45deg, #020031 0%, #6d3353 100%);
+	background: -webkit-gradient(linear, left bottom, right top, color-stop(0%,#020031), color-stop(100%,#6d3353));
+	background: -webkit-linear-gradient(45deg, #020031 0%,#6d3353 100%);
+	background: -o-linear-gradient(45deg, #020031 0%,#6d3353 100%);
+	background: -ms-linear-gradient(45deg, #020031 0%,#6d3353 100%);
+	background: linear-gradient(45deg, #020031 0%,#6d3353 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#020031', endColorstr='#6d3353',GradientType=1 );
+	-webkit-box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
+	-moz-box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
+	box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
+}
+
+.subhead {
+	text-align: left;
+	border-bottom: 1px solid #ddd;
+}
+.detail-wall {  
+    display: block;
+    padding:20px;
+    margin-top: 15px;
+    
+    background-color: #FFFFFF;
+    //box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
+    //background: #f3f3f3;
+    border: 1px solid #fff;
+    
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    //-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    //-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.wrap-wall {  
+    display: block;
+    padding:20px;
+    margin-top: 15px;
+    
+    background-color: #FFFFFF;
+    //box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
+    //background: #f3f3f3;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    //-moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    //-webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.wrap-text {
+    margin-top: 5px;
+    font-size: 13px;
+    font-weight: bold;
+}
+.wrap-tag {
+    margin-top: 5px;
+    color: gray;
+}
+.wrap-img {
+    text-align: center; 
+}
+
+.clearfix:before, .clearfix:after {
+	display: table;
+	line-height: 0;
+	content: "";
+	clear:both;
+
+}
+
+.comments-total {
+	padding-top:10px;
+	border-top: 1px solid #d7cebe;
+}
+
+.comment-item {
+    border-bottom: 1px solid #EBE6DE;
+}
+
+.comment-item-append {
+	padding-top:10px;
+    border-top: 1px dashed #EBE6DE;
+}
+
+.waterfall-span {
+	width:210px;
+	margin-left: 20px;
+}
+
+// tag.htm
+
+.tag-item {
+	margin-bottom: 18px;
+}
+
+.create-time, .reply-text, .recommend-text {
+	color: #bcbcbc;
+	font-size: 11px;
+}
+
+
+.recommander {
+	margin: 6px 0 0 0;
+	color: #bcbcbc;
+	font-size: 12px;
+}
+
+.recommand-list  {
+	//border-bottom: 1px solid #e1e1e1;
+	padding: 20px 0;
+}
+
+.recommand-img {
+margin: 0 10px 0 0;
+border: 1px solid #e1e1e1;
+}
+
+
+.nickname {
+	margin: 0 3px 0 0;
+    font-size: 11px;
+	text-decoration: none;
+	outline: none;
+	color: #b69e88;
+}
+
+a {
+	text-decoration: none;
+	outline: none;
+	color: #b69e88;
+}
+
+.detail-res-author {
+	margin-bottom: 8px;
+}
+
+.detail-res-title {
+	margin-top: 8px;
+	margin-bottom: 8px;
+    font-size: 14px;
+	font-weight: bold;
+	position: relative;
+}
+
+.detail-res-content {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.nav-res {
+	//height: 35;
+	margin-top: 2px;
+	height: 28px;
+	line-height: 28px;
+	float: right;
+	text-align: center;
+}
+.nav-res-last {
+	width: 28px;
+	margin-right: 10px;
+	color: #fff;
+	background: #fd7647;
+	border-radius: 3px;
+}
+.nav-res-next {
+	width: 55px;
+	color: #fff;
+	background: #fd7647;
+	border-radius: 3px;
+}
+.inline-block {
+	display: inline-block;
+}
+
+.nav-res a:hover {
+    text-decoration: none;
+    color: #898989;
+    background: #ffa86e;
+}
+
+
+.great {
+	background: #fff url(http://static.haha.mx/images/icon-vote-new.png) no-repeat left top;
+	background-position: 8px -128px;
+	color: #fb5e4e;
+}
+
+textarea {
+	resize: none;
+}
+
+
+.waterfall-wall {  
+    display: block;
+    margin-top: 20px;  
+    background-color: #FFFFFF;
+   	// border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.waterfall-title {
+	padding-top: 12px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.waterfall-author {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 5px;
+	padding-right: 10px;
+	line-height:23px
+}
+.favorite {
+	background: #F8F8F8;
+	border-top: 1px solid #F2F2F2;
+	padding-top: 13px;
+	padding-bottom: 13px;
+	padding-left: 10px;
+	padding-right: 10px;
+	line-height: 23px;
+}
+
+.btn-icon {
+	display: inline-block;
+	border: 1px solid #e8e8e8;
+	margin-right: 3px;	
+	padding-left: 5px;
+	padding-right: 5px;
+	border-radius: 3px;
+	border-radius: 3px;
+}
+.good {
+//	color: rgb(251, 94, 78);
+}
+.bad {
+//	color: rgb(70, 185, 70);
+}
+
+
+
+.item-wall {  
+    display: block;
+    padding:12px 18px 12px 18px;
+    margin-top: 16px;
+    background-color: #FFFFFF;
+    border: 1px solid #fff;
+    //border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.item-content {
+    padding-top: 10px;
+    font-size: 14px;
+    line-height: 23px;
+}
+.item-author {
+	padding-bottom: 8px;
+	border-bottom: 1px solid #F2F2F2;
+}
+.item-footer {
+	border-top: 1px solid #F2F2F2;
+	margin-top: 12px;
+	padding-top: 10px;
+	line-height: 25px;
+}
+
+.detail-res-footer {
+	margin-top: 12px;
+	line-height: 25px;
+}
+
+
+
+
+.sidebar-wall {
+	display: block;
+    padding-top:18px;
+    padding-bottom:15px;
+    padding-left:8px;
+    padding-right:8px;
+    margin-top: 15px;
+    background-color: #FFFFFF;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.pagination a {
+	color: #797272;
+	font-weight: 600;
+}
+
+
+.publish-wall {
+	display: block;
+    padding:20px;
+    margin-top: 18px;
+    background-color: #FFFFFF;
+    border: 1px solid #fff;
+    //border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+
+
+/** 上传资源 **/
+.iuput-box-text{
+	font-size: 12px;
+	width: 564px;
+} .add-video {
+	background: url('http://static.haha.mx/images/icon-add.png') no-repeat left top;
+	color: #666;
+	height: 16px;
+	line-height: 16px;
+	padding: 0 15px 0 20px;
+	float: left;
+	margin-top: 6px;
+}
+.upload-media {
+	position: relative;
+	margin: 10px 0 0 0;
+	//display: none;
+}
+.triangle, .triangle-down {
+	position: relative;
+}
+.triangle .tb-background {
+	top: -16px;
+	border-color: transparent transparent #d7d6d6 transparent;
+}
+.triangle .triangle-border {
+	position: absolute;
+	overflow: hidden;
+	width: 0;
+	height: 0;
+	border-width: 8px;
+	border-style: dashed dashed solid dashed;
+}
+.triangle .tb-border {
+	top: -15px;
+	border-color: transparent transparent #f4f3f3 transparent;
+}
+.upload-media-container {
+	background: #f1f1f1;
+	border: 1px solid #e2e1de;
+	padding: 6px 10px 10px;
+	margin-bottom: 20px;
+}
+.close-upload-media {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	background: url('http://static.haha.mx/images/icon.png') no-repeat left -930px;
+	right: 6px;
+	top: 6px;
+}
+.upload-media-input {
+	width: 100%;
+	margin: 0 auto;
+	text-align: left;
+	padding: 0;
+	color: #666;
+}
+.upload-media-input input {
+	background: #fff;
+	width: 480px;
+	padding: 0 3px;
+	height: 24px;
+	line-height: 24px;
+	border: 1px solid #ddd;
+	float: left;
+}
+.file-url {
+	color: #666;
+}
+.upload-btn {
+	float: right;
+	height: 23px;
+	background: #fd7647;
+	border: 1px solid #ec5621;
+	color: #fff;
+	border-radius: 3px;
+	line-height: 24px;
+}
+.upload-media-input a:hover.upload-btn {
+	background: #ffbd7c;
+}
+.upload-media-input .upload-btn {
+	padding: 0 16px;
+	margin-right: 0;
+	background: #ffb56d;
+	border-color: #f0a767;
+}
+.upload-btn:hover {
+	background: #fb8b55;
+	border: 1px solid #f1752a;
+}
+.publish-bth .btn-primary {
+	width:80px;
+	height: 35px;
+	line-height: 13px;
+}
+/** 模态对话框 **/
+.modal {
+	//width:380px;
+}
+/** 登录注册 **/
+.form-signin-register {
+	max-width: 360px;
+	margin: 0 auto 20px;
+	padding: 19px 29px 29px;
+	background-color: #fff;
+	border: 1px solid #e5e5e5;
+	-webkit-border-radius: 5px;
+	   -moz-border-radius: 5px;
+	        border-radius: 5px;
+	-webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+	   -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+	        box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+input[type="text"], input[type="password"] {
+	font-size: 16px;
+	height: auto;
+	margin-bottom: 15px;
+	padding: 7px 9px;
+}
+#topic-content {
+    font-size: 16px;
+    height: auto;
+    padding: 7px 9px;
+}
+
+
+#scrollUp {
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: url('http://huaban.com/img/icon_top.png') center center no-repeat;
+	background-color: #444;
+	width: 30px;
+	height: 30px;
+}
+
+
+#pin_view_arrows .prev {
+	position: absolute;
+	display: block;
+	top: 50%;
+	left: 0;
+	width: 50px;
+	height: 100px;
+	background: url('http://huaban.com/img/pin_view/prev_next_btns.png') 0 0 no-repeat;
+	margin-top: -50px;
+	cursor: pointer;
+}
+#pin_view_arrows .next {
+	position: absolute;
+	display: block;
+	right: 0;
+	top: 50%;
+	width: 50px;
+	height: 100px;
+	background: url('http://huaban.com/img/pin_view/prev_next_btns.png') -80px 0 no-repeat;
+	margin-top: -50px;
+	cursor: pointer;
+}
+#pin_view_arrows {
+	visibility: hidden;
+}
+#pin_view_arrows .prev:hover {
+	background-position: 0 -110px;
+}
+#pin_view_arrows .next:hover {
+	background-position: -80px -110px;
+}
+
+ #editor {overflow:scroll; max-height:300px}
+
+ .like-icon {
+	 background: url('/static/sharehp/img/like.png') no-repeat 999px 999px;
+	 display:block;
+	 background-position: -82px -2759px;
+	 width: 20px;
+	 height: 18px;
+	 text-indent: -2000px;
+	 margin-right:2px;
+}
+
+
+a:hover {
+	text-decoration: none;
+	color: #b69e88;
+}
+a{
+	text-decoration: none;
+}
+
+.footer {
+	margin-top: 25px;
+	padding-top: 2em;
+	background-color: #333;
+	color: white;
+	padding-bottom: 2em;
+}
+
+
+.play-icon {
+	background: url(http://a.xnimg.cn/imgpro/share/icon-play.png) no-repeat;
+	display: block;
+	height: 48px;
+	width: 48px;
+	position: absolute;
+	top: -15px;
+	left: 80px;
+}
+
+.play-btn {
+	background: url(http://a.xnimg.cn/imgpro/share/icon-play.png) no-repeat;
+	display: block;
+	height: 48px;
+	width: 48px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.thumb:hover  {
+	background-image: url(http://a.xnimg.cn/imgpro/button/play_music_big_hover.png);
+}
+
+
+.pagination ul > li.active > a {
+	background: #f9863a;
+	color: #fff;
+}
+.pagination ul > li > a:hover {
+	background: #ffe3d0;
+	color: rgb(102, 102, 102);
+}
+
+.pagination a {
+	color: rgb(102, 102, 102);
+}
+
+a:hover.good, a:hover.bad {
+	border-color: #bababa;
+}
+
+
+.error {
+	color: #c66;
+}
+
+.form-title {
+	border-bottom: 1px solid #d7cebe;
+	margin-bottom: 15px;
+    padding-bottom: 5px;
+}
+
+a.i-cancel  {
+	color: #009a61;
+}
+
+.comment-link {
+
+}
+
+.nav-res-prev-disabled{
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    padding: 0;
+    color: #7b7b7b;
+    background: #e3e3e3;
+    border-radius: 3px;
+    text-align: center;
+}
+.nav-res-next-disabled{
+    width: 55px;
+    height: 28px;
+    line-height: 28px;
+    padding: 0;
+    color: #7b7b7b;
+    background: #e3e3e3;
+    border-radius: 3px;
+    text-align: center;
+}
+
+
+
+
+.groups-wall {
+    display: block;
+    margin-top: 15px;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+}
+.group-desc {
+    display: inline-block;
+    padding-left:8px;
+}
+.img-left-rounded {
+	border-top-left-radius: 6px;
+	border-bottom-left-radius: 6px;
+}
+
+.group-wall {
+	padding:15px;
+    display: block;
+    margin-top: 15px;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+}
+.btn-close-preview {
+    background: url("http://static.haha.mx/images/icon.png") no-repeat scroll left -846px #FD9035;
+    display: none;
+    height: 16px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 16px;
+}
+.bar {
+    height: 18px;
+    background: green;
+}
+.topic-comment {
+    margin-top:15px;
+}
+td.topic-td {
+    border-top: 1px dashed rgb(221, 221, 221);
+}
+.text-error {
+    background: #f2dede;
+    font-size: 12px;
+    color: #a42625;
+    line-height: 1;
+}

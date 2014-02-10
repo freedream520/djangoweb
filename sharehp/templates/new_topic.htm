@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+    <link href="/static/sharehp/css/jquery.fileupload.css" rel="stylesheet">
+</head>
+<body>
+{% include "header.htm" %}
+<!-- 内容区 -->
+<div class="container">
+    <div class="row ">
+        <div class="span8">
+            <div class="group-wall clearfix">
+                <div id="group-id-{{ group.id }}" class="control-group">
+                    <input id="topic-title" type="text" class="btn-block" placeholder="新话题">
+                    <textarea id="topic-content" rows="12" class="btn-block" placeholder="内容"></textarea>
+						<span class="btn btn-success fileinput-button btn-small">
+					        <i class="icon-picture"></i>
+					        <span>图片</span>
+					        <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
+					    </span>
+                    <button id="add-new-topic" class="btn btn-large btn-primary pull-right" type="button">发布</button>
+                </div>
+
+                <div id='preview-img-box' class='pull-left' style="position: relative;">
+                    <a id="btn-close-preview" class="btn-close-preview" href="###" style="display: none;"></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="span4">
+            <div style="margin-top:15px">
+                <!-- FIXME hardcode-->
+                <a href="/group/{{ group.id }}/">
+                    <img class="img-rounded" src="/static/sharehp/img/group1.jpg">
+                </a>
+            </div>
+            <h5> > {{ group.group_name }}</h5>
+        </div>
+    </div>
+    <br>
+    <br>
+</div>
+
+
+<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="/static/sharehp/js/bootstrap-paginator.js"></script>
+<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
+<script src="/static/sharehp/js/common.js"></script>
+<script src="/static/sharehp/js/upload/vendor/jquery.ui.widget.js"></script>
+<script src="/static/sharehp/js/upload/jquery.iframe-transport.js"></script>
+<script src="/static/sharehp/js/upload/jquery.fileupload.js"></script>
+<script src="/static/sharehp/js/group.js"></script>
+<script>
+
+</script>
+
+
+</body>
+</html>
+

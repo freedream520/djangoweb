@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="/static/sharehp/css/test.css" rel="stylesheet" media="screen">
+	</head>
+	<body>
+        {% include "header.htm" %}
+		<!-- 内容区 -->
+		<div  class="container">
+			<div class="row">
+				<!-- 左边资源 -->
+				<div class="span8">
+					<div class="detail-wall">
+						<!-- 作者-->
+						<div class="detail-res-author">
+							<a href="#"><img class="img-circle" src="/static/sharehp/img/backtop2013.png"></a>
+							<a class="nickname">{{res.nickname}}</a>
+							<span class="create-time">{{res.date}}</span>
+							<div class="nav-res" id="nav-joke">
+                                {% if prev %}
+								<a title="上一条" class="nav-res-last inline-block" href="/detail/{{ res.type }}/{{ res.id }}/prev/"><</a>
+                                {% else %}
+                                <span class="nav-res-prev-disabled inline-block"><</span>
+                                {% endif %}
+
+                                {% if next %}
+                                <a title="下一条" class="nav-res-next inline-block" href="/detail/{{ res.type }}/{{ res.id }}/next/">下一条</a>
+                                {% else %}
+                                <span class="nav-res-next-disabled inline-block">下一条</span>
+                                {% endif %}
+							</div>
+						</div>
+						<!-- 标题 -->
+						<div class="detail-res-title">
+							<p>{{res.title}}</p>
+				     	</div>
+						<!-- 内容 -->
+						<div id="detail-{{res.id}}" class="text-center detail-res-title">
+							{% ifequal  res.type "image" %}
+							<img src="http://sharehp.qiniudn.com/{{res.content}}">
+							{% else %}
+							<object width="575" height="440">
+								<param value="{{res.content}}" name="movie">
+								<param value="transparent" name="wmode">
+								<param value="sameDomain" name="allowScriptAccess">
+								<param value="true" name="allowFullScreen">
+								<param value="&amp;auto_start=off" name="FlashVars">
+								<embed width="575" height="440" allowscriptaccess="sameDomain" allownetworking="all" wmode="transparent" allowfullscreen="true"  flashVars="auto_start=off&userid=239410733&sex=male&born=1988" type="application/x-shockwave-flash" src={{res.content}}>
+							</object>
+							{% endifequal %}
+							<div id="pin_view_arrows" style="top: 50%;">
+                                {% if prev %}
+								<a href="/detail/{{ res.type }}/{{ res.id }}/prev/" class="prev x self "></a>
+                                {% endif %}
+                                {% if next %}
+								<a href="/detail/{{ res.type }}/{{ res.id }}/next/" class="next x self "></a>
+                                {% endif %}
+							</div>
+						</div>
+						
+						<div class="detail-res-footer">
+							<a href="" title="称赞" class="btn-icon"><i class="icon-thumbs-up"></i> 123</a>
+							<a href="" title="鄙视" class="btn-icon"><i class="icon-thumbs-down"></i> 20</a>
+						</div>
+					</div>	
+					<br>
+					<div class="detail-wall">
+						<div class="item clearfix" >
+  							<form>
+  								<div class="control-group">
+								{% if request.xmanuser.login %}
+									<textarea id="comment-block" rows="2" class="btn-block"> 添加评论</textarea>
+									<button id="submit-commit" class="btn btn-primary pull-right" type="button">发布评论</button>
+								{% else %}
+									<textarea id="comment-block" rows="2" class="btn-block" readonly="readonly"> 添加评论</textarea>
+									<a href="/login/">立即登录</a><span>(登录后才能发表评论)</span>
+									<button id="submit-commit" class="btn pull-right" type="button" disabled="disabled">发布评论</button>
+								{% endif %}
+								</div>
+							</form>
+						</div>
+						<br>
+						<div>
+							{% if commentList %}
+							<ul class="media-list comments-total">
+								{% for comment in commentList %}
+								<li class="media comment-item">
+								    <a class="pull-left" href="#">
+								      <img class="img-circle" src="/static/sharehp/img/backtop2013.png">
+								    </a> 
+								    <div class="media-body" id="{{comment.comment_id}}">
+										<a id={{comment.user_id}} class="comment-user nickname">{{comment.username}}</a>
+										<span class="create-time">{{comment.date}}</span>
+										<p>
+											{{comment.content}}
+											<a class="pull-right comment-link" href="###">回复</a>
+										</p>
+										{% for reply in comment.replyList %}
+										<div class="media-body" id="{{comment.comment_id}}">
+											<a id={{reply.from_id}} class="comment-user nickname">{{reply.from_name}}</a>
+											<span class="reply-text">回复</span>
+											<a class="nickname">{{reply.to_name}}</a>
+											<span class="create-time">{{reply.date}}</span>
+											<p>
+												{{reply.content}}
+												<a class="pull-right comment-link" href="###">回复</a>
+											</p>
+										</div>
+										{% endfor %}
+									</div>
+								</li>
+								{% endfor %}
+							</ul>
+							{% else %}
+								<p>还没有人评论哦!</p>
+							{% endif %}
+						</div>
+					</div>									
+				</div>
+
+				<!-- 右边目录-->
+				<div class="span4">
+					<div class="span4 ">
+					<!-- 微信推广 -->
+                    <div class="sidebar-wall" class="text-center">
+						<img  src="/static/sharehp/img/wx.png">
+					</div>
+					</div>
+					<br>
+			    </div>
+		    </div>
+		</div>
+		<br>
+        {% include 'footer.htm' %}
+
+        <script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+    	<script src="/static/sharehp/js/bootstrap.min.js"></script>
+    	<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
+    	<script src="/static/sharehp/js/common.js"></script>
+    	<script src="/static/sharehp/js/detail.js"></script>
+	</body>
+</html>
+

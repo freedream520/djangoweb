@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+    <link href="/static/sharehp/css/jquery.fileupload.css" rel="stylesheet">
+</head>
+<body>
+{% include "header.htm" %}
+<!-- 内容区 -->
+<div class="container">
+    <div class="row ">
+        <div class="span8 ">
+            <div class="group-wall">
+                <h4 id="topic-id-{{ topic.id }}">{{ topic.topic_name }}</h4>
+                <ul class="media-list">
+                    {% for tc in topicComments %}
+                        <li class="media">
+                            <div class="media-body">
+                                <div class="clearfix"
+                                     style="padding:4px; background-color: #f0f6f3; margin-bottom:12px;">
+                                    <a class="pull-left" href="#">
+                                        <!-- FIXME hardcode -->
+                                        <img width="28" class="img-circle" src="/static/sharehp/img/backtop2013.png">
+                                    </a>
+
+                                    <div class="muted" style="display:inline; line-height: 24px; font-size:12px;">
+                                        <a href="/user/{{ tc.user_id }}/"
+                                           style="padding-left:6px;">{{ tc.nickname }}</a>
+                                        <span style="padding-left:6px;">{{ tc.date }}</span>
+                                        <span class="pull-right">{{ tc.floor }}L</span>
+                                    </div>
+                                </div>
+                                <p class="clearfix" style="font-size:14px;">{{ tc.text|linebreaksbr }}</p>
+                                {% if tc.attachment.exsit %}
+                                    {% ifequal tc.attachment.type "image" %}
+                                        <!-- FIXME hardcode -->
+                                        <img src="/static/sharehp/tmp/{{ tc.attachment.url }}/">
+                                    {% endifequal %}
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <br>
+
+                <div class="topic-comment clearfix">
+                    {% if request.xmanuser.login %}
+                        <p class="caption">我来说两句 ...</p>
+                        <div class="control-group">
+                            <textarea id="topic-comment-content" rows="6" class="btn-block"></textarea>
+                            <span class="btn btn-success fileinput-button btn-small">
+                                <i class="icon-picture"></i>
+                                <span>图片</span>
+                                <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
+                            </span>
+                            <button id="topic-comment-save" class="btn btn-large btn-primary pull-right" type="button">
+                                发布
+                            </button>
+                        </div>
+                        <div id='preview-img-box' class='pull-left' style="position: relative;">
+                            <a id="btn-close-preview" class="btn-close-preview" href="###" style="display: none;"></a>
+                        </div>
+                    {% else %}
+                        <a href='/login/'  {{ request.get_full_path }}>立即登录</a>
+                        <span>(登录后才能发表评论)</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div id="pagination"></div>
+        </div>
+
+        <div class="span4">
+            {% include 'group_sidebar.htm' %}
+        </div>
+
+    </div>
+    <br>
+    <br>
+    <br>
+</div>
+
+
+<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="/static/sharehp/js/bootstrap-paginator.js"></script>
+<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
+<script src="/static/sharehp/js/common.js"></script>
+<script src="/static/sharehp/js/upload/vendor/jquery.ui.widget.js"></script>
+<script src="/static/sharehp/js/upload/jquery.iframe-transport.js"></script>
+<script src="/static/sharehp/js/upload/jquery.fileupload.js"></script>
+<script src="/static/sharehp/js/group.js"></script>
+<script type="text/javascript">
+    initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/topic/{{ topic.id }}/?page=")
+</script>
+</body>
+</html>
+

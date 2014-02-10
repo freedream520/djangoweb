@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+</head>
+<body>
+{% include "header.htm" %}
+<!-- 内容区 -->
+<div class="container">
+    <div class="row ">
+        <div class="span8">
+            <div class="group-wall">
+                <ul class="breadcrumb clearfix">
+                    <!-- FIXME highlight -->
+                    <li class="active">
+                        最近<span class="divider">/<span>
+                    </li>
+                    <li class="pull-right">
+                        <a href="/group/{{ group.id }}/new_topic/">
+                            <span class="btn btn-success btn-small ">我要发帖</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>话题</th>
+                        <th>作者</th>
+                        <th>回复</th>
+                        <th>最后回复</th>
+                    <tr>
+                    </thead>
+                    <tbody>
+                        {% for topic in topics %}
+                        <tr>
+                            <td class="topic-td"><a href="/group/topic/{{ topic.id }}/">{{ topic.topic_name }}</a></td>
+                            <td class="topic-td"><a href="/user/{{ topic.user_id }}/">{{ topic.nickname }}</a></td>
+                            <td class="topic-td">{{ topic.comments }}</td>
+                            <td class="topic-td">{{ topic.last_comment_date }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="pagination"></div>
+        </div>
+
+        <div class="span4">
+            {% include 'group_sidebar.htm' %}
+        </div>
+    </div>
+</div>
+<br>
+
+
+<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="/static/sharehp/js/bootstrap-paginator.js"></script>
+<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
+<script src="/static/sharehp/js/common.js"></script>
+<script type="text/javascript">
+    initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/{{ group.id }}/?page=")
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,38 @@
+<!-- 导航栏 -->
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner ">
+        <div class="container">
+            <ul class="nav pull-right">
+                {% if request.xmanuser.login %}
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            {{ request.xmanuser.nickname }}
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/loginout/">退出</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li><a href="/login/">登录</a></li>
+                    <li><a href="/register/">注册</a></li>
+                {% endif %}
+            </ul>
+            <ul class="nav  nav-stacked">
+                <li><a href="/index/">最新内容</a></li>
+                <li><a href="/tag/video/">搞笑视频</a></li>
+                <li><a href="/tag/image/">搞笑图片</a></li>
+                <li><a href="/groups/">小组</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<header class="jumbotron subhead">
+    <div class="container ">
+        <h2>不正常人类研究中心
+            <small>精神病人思维广，弱智儿童欢乐多</small>
+        </h2>
+    </div>
+</header>
+<br>
