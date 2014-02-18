@@ -1,0 +1,22 @@
+<div class="group-wall clearfix">
+    <!-- FIXME hardcode-->
+    <img class="img-rounded pull-left" src="/static/sharehp/img/wx.png">
+</div>
+
+<div class="group-wall">
+    <p style="font-size: 14px; font-weight: bold; padding-bottom: 8px;border-bottom: 1px solid #d7cebe;">小组推荐</p>
+    {% for group in groups %}
+    <div class="clearfix">
+        <a href="/group/{{ group.id }}/">
+            <!-- FIXME hardcode -->
+            <img class="pull-left img-rounded" width="65" src="/static/sharehp/img/group1.jpg">
+            <div class="group-desc">
+                <h5 style="color: #4A4A4A;">{{ group.group_name }}</h5>
+                <span style="color: #999;font-size: 13px">{{ group.group_desc }}</span>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+    <br>
+
+</div>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+    <link href="/static/sharehp/css/jquery.fileupload.css" rel="stylesheet">
+    <link href="/static/sharehp/css/jquery.Jcrop.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/sharehp/css/demos.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+{% include "header.htm" %}
+<div class="container">
+    <div class="row">
+        <div class="span8">
+            <div class="group-wall">
+                <div id="upload-avatar">
+                <span class="btn btn-success btn-small fileinput-button">
+                    <i class="icon-picture"></i>
+                    <span>上传新头像</span>
+                    <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
+                </span>
+                </div>
+                <div style="margin-bottom: 150px">
+                </div>
+            </div>
+        </div>
+
+        <div class="span4">
+            <div class="group-wall">
+                <ul class="nav nav-pills nav-stacked">
+                    <li class="active">
+                        <a href="/account/change_avatar/">我的头像</a>
+                    </li>
+                    <li><a href="/account/change_password/">修改密码</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <br>
+    <br>
+    <br>
+    <br>
+</div>
+<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="/static/sharehp/js/upload/vendor/jquery.ui.widget.js"></script>
+<script src="/static/sharehp/js/upload/jquery.iframe-transport.js"></script>
+<script src="/static/sharehp/js/upload/jquery.fileupload.js"></script>
+<script src="/static/sharehp/js/jquery.Jcrop.min.js"></script>
+<script type="text/javascript">
+    var crop_x, crop_y, crop_width, crop_height;
+    var attach_id = '';
+
+    function init_global_var() {
+        crop_x = 0;
+        crop_y = 0;
+        crop_width = 100;
+        crop_height = 100;
+        attach_id = '';
+    }
+
+    function init_jcrop(width, height) {
+        // Create variables (in this scope) to hold the API and image size
+        var jcrop_api, boundx, boundy;
+
+        $('#target').Jcrop({
+            onChange: updatePreview,
+            onSelect: updatePreview,
+            aspectRatio: 1,
+            minSize: [100, 100], // image size at least 100*100
+            trueSize: [width, height]
+        }, function () {
+            // Use the API to get the real image size
+            var bounds = this.getBounds();
+            boundx = bounds[0];
+            boundy = bounds[1];
+            // Store the API in the jcrop_api variable
+            jcrop_api = this;
+            jcrop_api.setSelect([0, 0, 100, 100]);
+        });
+
+        function updatePreview(c) {
+            if (parseInt(c.w) > 0) {
+                crop_x = c.x;
+                crop_y = c.y;
+                crop_width = c.w;
+                crop_height = c.h;
+
+                var rx = 100 / c.w;
+                var ry = 100 / c.h;
+
+                $('#preview').css({
+                    width: Math.round(rx * boundx) + 'px',
+                    height: Math.round(ry * boundy) + 'px',
+                    marginLeft: '-' + Math.round(rx * c.x) + 'px',
+                    marginTop: '-' + Math.round(ry * c.y) + 'px'
+                });
+            }
+        }
+    }
+
+    $(function () {
+        $('#fileupload').fileupload({
+            dataType: 'json',
+            add: function (e, data) {
+                $('#crop-avatar').unbind().remove();
+                init_global_var();
+                data.submit();
+            },
+            done: function (e, result) {
+                result = JSON.parse(JSON.stringify(result.result));
+                // 图片上传成功 FIXME
+                if (result.success == 0) {
+                    var img_src = '/static/sharehp/tmp/' + result.data.src;
+                    var img_width = result.data.width;
+                    var img_height = result.data.height;
+                    // 附件ID
+                    attach_id = result.data.src
+
+                    $('#upload-avatar').append(crop_avatar_area(img_src, img_width, img_height));
+                    init_jcrop(img_width, img_height);
+                    $('#submit-avatar').bind('click', function () {
+                        // check post param FIXME
+                        $.post('/account/change_avatar/',
+                                {
+                                    attach: attach_id,
+                                    crop_x: crop_x,
+                                    crop_y: crop_y,
+                                    crop_width: crop_width,
+                                    crop_height: crop_height
+                                },
+                                function (result, status) {
+                                    result = JSON.parse(result);
+                                    if (result.success == 0) {
+                                        // TODO
+                                    }
+                                });
+                    })
+                    $('#crop-avatar').css('display', 'block');
+                } else {
+                }
+            }
+        });
+    });
+
+
+    function crop_avatar_area(src, width, height) {
+        var preview_image = '<img src=' + src + ' id="preview"/>';
+        var target_image = '<img src=' + src + ' id="target"/>';
+        if (parseInt(width) > 300) {
+            target_image = '<img style="width: 300px" src=' + src + ' id="target"/>';
+        }
+        return '<div id="crop-avatar" class="article clearfix" style="display: none"><h4>请拖动矩形框选择裁剪区域</h4><table><tr><td>' + target_image + '</td><td>' + '<img width="40" src="http://res.baoz.cn/imgs/arrow-1.png"></td><td><div style="margin-left:8px;width:100px;height:100px;overflow:hidden;">' +
+                preview_image + '</div></td></tr></table><br><button id="submit-avatar" class="btn btn-large btn-primary" type="button">确定</button></div>'
+    }
+</script>
+</body>
+</html>

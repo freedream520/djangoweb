@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/jquery.fileupload.css" rel="stylesheet">
+    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+</head>
+<body>
+{% include "header.htm" %}
+<!-- 内容区 -->
+<div class="container">
+    <div class="row ">
+        <div class="span8">
+            <div class="group-wall clearfix">
+                <h4>发布新资源</h4>
+
+                <div class="control-group">
+                    <textarea id="resource-content" rows="5" class="btn-block" placeholder="资源描述"></textarea>
+                    <span class="btn btn-success btn-small fileinput-button">
+                        <i class="icon-picture"></i>
+                        <span>图片</span>
+                        <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
+                    </span>
+                    <span id="add-video" class="btn btn-warning btn-small" style="margin-left: 8px;">
+                        <i class="icon-play-circle"></i>
+                        <span>视频</span>
+                    </span>
+                    <button id="submit-new-resource" class="btn btn-large btn-primary pull-right" type="button">发布
+                    </button>
+                </div>
+
+                <!-- 上传资源容器 -->
+                <div class="upload-media">
+                    <div class="triangle" id="triangle">
+                        <div class="triangle-border tb-background"></div>
+                        <div class="triangle-border tb-border"></div>
+                    </div>
+
+                    <div class="upload-media-container clearfix">
+                        <a href="###" class="close-upload-media" id="btn-file-url-cancel"></a>
+
+                        <div id="url-input-box">
+                            <span>请输入视频网址</span>
+
+                            <div class="clearfix">
+                                <input id="input-url" type="text" style="width: 480px" value="http://"/>
+                                <a id="submit-url" href="###" class="pull-right btn-url-confirm">确定</a>
+                            </div>
+                            <span class="highlight">目前支持优酷、56视频的地址</span>
+                        </div>
+                        <!-- 视频/图片预览 -->
+                        <div id='preview-img-box' class='pull-left' style="position: relative;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="span4">
+            <div class="group-wall" style="height: 120px;">
+               <h5>发布须知</h5>
+               <a href="">免责声明</a>
+               <a href=""></a>
+               <a href=""></a>
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+</div>
+
+<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
+<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="/static/sharehp/js/bootstrap-paginator.js"></script>
+<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
+<script src="/static/sharehp/js/common.js"></script>
+<script src="/static/sharehp/js/upload/vendor/jquery.ui.widget.js"></script>
+<script src="/static/sharehp/js/upload/jquery.iframe-transport.js"></script>
+<script src="/static/sharehp/js/upload/jquery.fileupload.js"></script>
+<script src="/static/sharehp/js/new_resource.js"></script>
+
+</body>
+</html>
