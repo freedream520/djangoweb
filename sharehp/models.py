@@ -8,6 +8,7 @@ class User(models.Model):
     email = models.CharField(max_length=128)
     nickname = models.CharField(max_length=32)
     password = models.CharField(max_length=32)
+    avatar = models.CharField(max_length=1024) # jsonstr
     status = models.CharField(max_length=32)
 
 
@@ -17,7 +18,7 @@ class Resource(models.Model):
     user_id = models.IntegerField()
     title = models.CharField(max_length=10240)
     type = models.CharField(max_length=32)
-    nums = models.IntegerField()
+    nums = models.IntegerField() # Deprecated
     thumbnail = models.CharField(max_length=255)
     content = models.CharField(max_length=10240)
     good = models.IntegerField()
@@ -62,4 +63,15 @@ class Topic_Comment(models.Model):
     topic_id = models.IntegerField()
     content = models.CharField(max_length=10240)
     status = models.CharField(max_length=16)
+
+
+#  爬取资源
+class Spide_Resource(models.Model):
+    gmt_create = models.DateTimeField()
+    title = models.CharField(max_length=1024)
+    type = models.CharField(max_length=32)
+    content = models.CharField(max_length=1024)
+    origin =  models.CharField(max_length=1024)
+    md5 = models.CharField(max_length=256)
+    status = models.CharField(max_length=32)
 
