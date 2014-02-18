@@ -14,6 +14,7 @@
     <div class="row ">
         <div class="span8 ">
             <div class="group-wall">
+                <!-- 必须为h4 js依赖 -->
                 <h4 id="topic-id-{{ topic.id }}">{{ topic.topic_name }}</h4>
                 <ul class="media-list">
                     {% for tc in topicComments %}
@@ -22,22 +23,22 @@
                                 <div class="clearfix"
                                      style="padding:4px; background-color: #f0f6f3; margin-bottom:12px;">
                                     <a class="pull-left" href="#">
-                                        <!-- FIXME hardcode -->
-                                        <img width="28" class="img-circle" src="/static/sharehp/img/backtop2013.png">
+                                        <img width="28" height="28" class="img-circle"
+                                             src="http://sharehp.qiniudn.com/{{ tc.avatar.28 }}">
                                     </a>
 
-                                    <div class="muted" style="display:inline; line-height: 24px; font-size:12px;">
+                                    <div class="muted" style="display:inline; line-height: 27px; font-size:12px;">
                                         <a href="/user/{{ tc.user_id }}/"
                                            style="padding-left:6px;">{{ tc.nickname }}</a>
-                                        <span style="padding-left:6px;">{{ tc.date }}</span>
+                                        <span style="padding-left:6px;">{{ tc.create_date }}</span>
                                         <span class="pull-right">{{ tc.floor }}L</span>
                                     </div>
                                 </div>
-                                <p class="clearfix" style="font-size:14px;">{{ tc.text|linebreaksbr }}</p>
+                                <p>{{ tc.text|linebreaksbr }}</p>
                                 {% if tc.attachment.exsit %}
                                     {% ifequal tc.attachment.type "image" %}
                                         <!-- FIXME hardcode -->
-                                        <img src="/static/sharehp/tmp/{{ tc.attachment.url }}/">
+                                        <img src="http://sharehp.qiniudn.com/{{ tc.attachment.url }}">
                                     {% endifequal %}
                                 {% endif %}
                             </div>
@@ -49,6 +50,9 @@
                 <div class="topic-comment clearfix">
                     {% if request.xmanuser.login %}
                         <p class="caption">我来说两句 ...</p>
+                        <div id="error-msg" class="alert alert-error fade in"
+                             style="display: none; padding: 2px 35px 2px 8px; margin-bottom: 12px;">
+                        </div>
                         <div class="control-group">
                             <textarea id="topic-comment-content" rows="6" class="btn-block"></textarea>
                             <span class="btn btn-success fileinput-button btn-small">
@@ -56,12 +60,17 @@
                                 <span>图片</span>
                                 <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
                             </span>
-                            <button id="topic-comment-save" class="btn btn-large btn-primary pull-right" type="button">
+
+                            <div id="comment-success" class="modal hide fade" tabindex="-1" role="dialog"
+                                 aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+                                <img src="/static/sharehp/img/404.jpg">
+                            </div>
+                            <button id="topic-comment-save" class="btn btn-large btn-primary pull-right"
+                                    data-loading-text="正在提交" type="button">
                                 发布
                             </button>
                         </div>
                         <div id='preview-img-box' class='pull-left' style="position: relative;">
-                            <a id="btn-close-preview" class="btn-close-preview" href="###" style="display: none;"></a>
                         </div>
                     {% else %}
                         <a href='/login/'  {{ request.get_full_path }}>立即登录</a>
@@ -93,7 +102,9 @@
 <script src="/static/sharehp/js/upload/jquery.fileupload.js"></script>
 <script src="/static/sharehp/js/group.js"></script>
 <script type="text/javascript">
-    initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/topic/{{ topic.id }}/?page=")
+    {% ifnotequal curPage "1" %}
+        initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/topic/{{ topic.id }}/?page=")
+    {% endifnotequal %}
 </script>
 </body>
 </html>
