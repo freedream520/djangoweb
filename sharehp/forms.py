@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.core.exceptions import ObjectDoesNotExist
 from django import forms
 from models import User
+from utils import common
 
 # 注册表单
 class RegisterForm(forms.Form):
@@ -24,9 +24,7 @@ class RegisterForm(forms.Form):
             raise forms.ValidationError(u'昵称已经被占用, 换一个吧！')
         return nickname
 
-        # 登录表单
-
-
+# 登录表单
 class LoginForm(forms.Form):
     email = forms.CharField(max_length=128, error_messages={'required': u'请输入邮箱', 'max_length': u'邮箱太长了哎'})
     password = forms.CharField(max_length=16, error_messages={'required': u'请输入密码', 'max_length': u'密码太长了哎'})
@@ -40,12 +38,25 @@ class LoginForm(forms.Form):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        email = cleaned_data.get("email")
-        password = cleaned_data.get("password")
+        email = cleaned_data.get("email").strip()
+        password = common.encode_password(cleaned_data.get("password").strip())
         if password and email:
-            is_exist = User.objects.filter(email=email.strip(), password=password.strip()).exists()
+            is_exist = User.objects.filter(email=email, password=password).exists()
             if not is_exist:
                 raise forms.ValidationError(u"密码错误！")
         return cleaned_data
 
+# 修改密码
+class ChangePasswordForm(forms.Form):
+    password = forms.CharField(max_length=16, error_messages={'required': u'请输入旧密码', 'max_length': u'密码太长了哎'})
+    new_password = forms.CharField(max_length=16, error_messages={'required': u'请输入新密码', 'max_length': u'密码太长了哎'})
+    confirm_password = forms.CharField(max_length=16, error_messages={'required': u'请再次输入新密码', 'max_length': u'密码太长了哎'})
 
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if confirm_password and new_password:
+            if not (confirm_password == new_password):
+                raise forms.ValidationError(u"两次输入密码不一致！")
+        return cleaned_data
