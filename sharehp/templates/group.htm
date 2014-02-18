@@ -1,3 +1,4 @@
+{% load poll_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +16,8 @@
                 <ul class="breadcrumb clearfix">
                     <!-- FIXME highlight -->
                     <li class="active">
-                        最近<span class="divider">/<span>
+                        最新发布
+                        <span class="divider">/<span>
                     </li>
                     <li class="pull-right">
                         <a href="/group/{{ group.id }}/new_topic/">
@@ -24,26 +26,25 @@
                     </li>
                 </ul>
 
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>话题</th>
-                        <th>作者</th>
-                        <th>回复</th>
-                        <th>最后回复</th>
-                    <tr>
-                    </thead>
-                    <tbody>
-                        {% for topic in topics %}
-                        <tr>
-                            <td class="topic-td"><a href="/group/topic/{{ topic.id }}/">{{ topic.topic_name }}</a></td>
-                            <td class="topic-td"><a href="/user/{{ topic.user_id }}/">{{ topic.nickname }}</a></td>
-                            <td class="topic-td">{{ topic.comments }}</td>
-                            <td class="topic-td">{{ topic.last_comment_date }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                {% for topic in topics %}
+                    <div class="media topic-sep">
+                        <a class="pull-left" href="#">
+                            <img class="img-circle" width="36" height="36" src="{{ topic.avatar.40|static_url}}">
+                        </a>
+
+                        <div class="media-body">
+                            <div class="clearfix">
+                                <a href="/user/{{ topic.user_id }}/">{{ topic.nickname }}</a>
+                                <span class="create-time"> {{ topic.publish_date }}发布 </span>
+                                <span class="pull-right label">{{ topic.comments }} 回复</span>
+                            </div>
+                            <div class="topic-name">
+                                <a href="/group/topic/{{ topic.id }}/"><h4>{{ topic.topic_name }}</h4>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
             <div id="pagination"></div>
         </div>
@@ -62,7 +63,9 @@
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 <script type="text/javascript">
-    initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/{{ group.id }}/?page=")
+    {% ifnotequal curPage "1" %}
+        initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/{{ group.id }}/?page=")
+    {% endifnotequal %}
 </script>
 
 </body>
