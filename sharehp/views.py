@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 from django.shortcuts import render_to_response
+from django.forms.util import ErrorList
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.http import Http404
+from django.db.models import Max
 from django.template import RequestContext
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
+from exception import QiniuUploadFileError
 from datetime import datetime
 from models import Resource
 from models import User
@@ -14,149 +16,150 @@ from models import Resource_Comment
 from models import Group
 from models import Group_Topic
 from models import Topic_Comment
+from utils import prettydate
+from utils import common
+from utils import config
 import json
 import math
 import forms
 import cache
-import uuid
 import urllib
-import qiniu_helper
+import re
+import image
+import os
 
 
 # 分类页面
 def classify(request, tag):
     page_size = 10
-
-    if tag and tag.strip() in ('video', 'image'):
-        page = _get_page(request)
-        offset = (int(page) - 1) * page_size
-
-        rl = Resource.objects.filter(type=tag.strip())[offset: offset + page_size]  # FIXME
-        resCount = Resource.objects.filter(type=tag.strip()).count()
-        pages = int(math.ceil(resCount / (page_size * 1.0)))
-
-        resList = []
-        for r in rl:
-            res = {
-                'id': r.id,
-                'date': r.gmt_create,
-                'userid': r.user_id,
-                'nickname': cache.get_user_nickname(r.user_id),
-                'title': r.title,
-                'type': r.type,
-                'thumbnail': r.thumbnail,
-                'good': r.good,
-                'bad': r.bad,
-                'comments': r.comments
-            }
-            resList.append(res)
-
-        context = RequestContext(request, {'tag': tag.strip(), 'resList': resList, 'curPage': page, 'pages': pages})
-        return render_to_response('tag.htm', context)
-
-
-# 首页
-def index(request):
-    page_size = 20
     page = _get_page(request)
     offset = (int(page) - 1) * page_size
 
-    rl = Resource.objects.all()[offset: offset + page_size]  # FIXME
-    #resCount = Resource.objects.all().count()
-    #pages = int(math.ceil(resCount / (page_size * 1.0)))
+    rl = Resource.objects.filter(type=tag, status='enabled')[offset: offset + page_size]
+    res_count = Resource.objects.filter(type=tag, status='enabled').count()
+    pages = int(math.ceil(res_count / (page_size * 1.0)))
+
+    res_list = []
+    for r in rl:
+        res = {
+            'id': r.id,
+            'create_date': prettydate.convert(r.gmt_create),
+            'user_id': r.user_id,
+            'nickname': cache.get_user_nickname(r.user_id),
+            'avatar': cache.get_user_avatar(r.user_id),
+            'title': r.title,
+            'type': r.type,
+            'thumbnail': json.loads(r.thumbnail), # json
+            'comments': r.comments
+        }
+        res_list.append(res)
+    # side bar
+    group_list = cache.get_group_list()
+
+    context = RequestContext(request, {'tag': tag,
+                                       'resList': res_list,
+                                       'groups': group_list,
+                                       'curPage': page,
+                                       'pages': pages})
+    return render_to_response('tag.htm', context)
+
+
+# 首页: 获取最新发布的20个资源
+def index(request):
+    rl = Resource.objects.filter(status='enabled').order_by('-gmt_create')[0:20]
     # 分发资源到瀑布中
     resListArray = [[], [], [], []]
     for i, r in enumerate(rl):
         res = {
             'id': r.id,
-            'date': r.gmt_create,
-            'userid': r.user_id,
+            'create_date': prettydate.convert(r.gmt_create),
+            'user_id': r.user_id,
             'nickname': cache.get_user_nickname(r.user_id),
             'title': r.title,
             'type': r.type,
-            'thumbnail': r.thumbnail,
-            'good': r.good,
-            'bad': r.bad,
+            'thumbnail': json.loads(r.thumbnail),
             'comments': r.comments
         }
         # 标题过长
-        if len(res['title']) > 36:
+        if len(res['title']) > 36:  #  TODO 优化
             res['title'] = res['title'][:36] + '...'
         resListArray[i % 4].append(res)
 
-    context = RequestContext(request, {
-        'resListArray': resListArray})
-
+    context = RequestContext(request, {'resListArray': resListArray})
     return render_to_response('index.htm', context)
 
 
 # 资源详情页面
-def detail(request, tag, resid):
-    if (tag.strip() in ('video', 'image')):
-        # FIXME exception
-        r = Resource.objects.get(id=resid)
+def detail(request, tag, res_id):
+    try:
+        r = Resource.objects.get(id=res_id, status='enabled')
+    except Resource.DoesNotExist:
+        return render_to_response('miss/resource.htm', RequestContext(request))
 
-        # 资源信息
-        res = {
-            'id': r.id,
-            'date': r.gmt_create,
-            'userid': r.user_id,
-            'nickname': cache.get_user_nickname(r.user_id),
-            'title': r.title,
-            'type': r.type,
-            'content': json.loads(r.content)[0],
-            'good': r.good,
-            'bad': r.bad
-        }
+    # 资源信息
+    res = {
+        'id': r.id,
+        'create_date': r.gmt_create.strftime('%Y-%m-%d %H:%M:%S'),
+        'user_id': r.user_id,
+        'nickname': cache.get_user_nickname(r.user_id),
+        'avatar': cache.get_user_avatar(r.user_id),
+        'title': r.title,
+        'type': r.type,
+        'content': json.loads(r.content),
+        'comments': r.comments
+    }
+    # 评论信息
+    comment_list = []
+    cl = Resource_Comment.objects.filter(res_id=res_id, status='enabled')
+    for comment in cl:
+        comment_list.append({
+            'comment_id': comment.id,
+            'create_date': prettydate.convert(comment.gmt_create),
+            'user_id': comment.user_id,
+            'nickname': cache.get_user_nickname(comment.user_id),
+            'avatar': cache.get_user_avatar(comment.user_id),
+            'content': comment.content})
 
-        # 上一个/下一个 FIXME
-        hasNext = True
-        hasPrev = True
-        if res['id'] == 1:
-            hasPrev = False
-        if res['id'] == 126:
-            hasNext = False
+    # 上一个/下一个
+    prev = not _first_resource_id(res_id)
+    next = not _last_resource_id(res_id)
 
-        # 评论信息
-        commentList = []
-        cl = Resource_Comment.objects.filter(res_id=resid)
-        for comment in cl:
-            commentList.append({
-                'comment_id': comment.id,
-                'date': comment.gmt_create,
-                'user_id': comment.user_id,
-                'username': cache.get_user_nickname(comment.user_id),
-                'content': comment.content})
-
-        context = RequestContext(request, {
-            'res': res,
-            'commentList': commentList,
-            'next': hasNext,
-            'prev': hasPrev})
-        return render_to_response('detail.htm', context)
-    else:
-        # TODO
-        pass
+    context = RequestContext(request, {
+        'res': res,
+        'commentList': comment_list,
+        'next': next,
+        'prev': prev,
+        'groups': cache.get_group_list()})
+    return render_to_response('detail.htm', context)
 
 
 # 下一个/上一个资源
-def another(request, tag, resid, order):
-    # TODO 分页优化
+def another(request, tag, res_id, order):
     if order == 'next':
-        rl = Resource.objects.filter(id__gt=resid)[:1]
+        rl = Resource.objects.filter(id__gt=res_id)[:1]
     else:
-        rl = Resource.objects.filter(id__lt=resid).order_by('-id')[:1]
+        rl = Resource.objects.filter(id__lt=res_id).order_by('-id')[:1]
 
     if len(rl) > 0:
         return detail(request, tag, rl[0].id)
     else:
-        pass
+        return render_to_response('miss/resource.htm', RequestContext(request))
+
+
+# 发表新资源(require_login)
+def new_resource(request):
+    return render_to_response('new_resources.htm', RequestContext(request))
 
 
 # 群组列表页面
 def groups(request):
-    # groups = Group.objects.filter(status='enabled')
     groups = Group.objects.all()
+    for group in groups:
+        group_desc = group.group_desc
+        # 群组描述过长
+        if group_desc and len(group_desc) > 13:  #  TODO 优化
+            group.group_desc = group_desc[:13] + '...'
+
     context = RequestContext(request, {'groups': groups})
     return render_to_response('groups.htm', context)
 
@@ -165,37 +168,36 @@ def groups(request):
 def group(request, group_id, order):
     is_exist = Group.objects.filter(id=group_id).exists()
     if not is_exist:
-        return Http404()
+        return render_to_response('miss/group.htm', RequestContext(request))
 
-    # 每页显示15条
-    page_size = 15
+    # 每页显示10条
+    page_size = 10
     page = _get_page(request)
     offset = (int(page) - 1) * page_size
     # 排序
     if order == 'hot':
         # FIXME 最热排序逻辑
-        ts = Group_Topic.objects.filter(group_id=group_id, status='enabled').order_by('-gmt_create', '-comments')[
-             offset: offset + page_size]
+        gts = []
     else:
-        ts = Group_Topic.objects.filter(group_id=group_id, status='enabled').order_by('-gmt_create')[
-             offset: offset + page_size]
-    # 生成模板变量
-    # TODO cache
-    topic_count = Group_Topic.objects.filter(group_id=group_id, status='enabled').count()
-    pages = int(math.ceil(topic_count / (page_size * 1.0)))
-
+        gts = Group_Topic.objects.filter(group_id=group_id, status='enabled').order_by('-gmt_create')[
+              offset: offset + page_size]
     topics = []
-    for t in ts:
+    for t in gts:
         topic = {
             'id': t.id,
             'topic_name': t.topic_name,
             'user_id': t.user_id,
             'nickname': cache.get_user_nickname(t.user_id),
+            'avatar': cache.get_user_avatar(t.user_id),
             'comments': t.comments,
-            'last_comment_date': t.gmt_modify.strftime('%Y-%m-%d %H:%M:%S')
+            'publish_date': prettydate.convert(t.gmt_create),
+            'last_comment_date': prettydate.convert(t.gmt_modify)
         }
         topics.append(topic)
     group = cache.get_group_info(group_id)
+    topic_count = Group_Topic.objects.filter(group_id=group_id, status='enabled').count()
+    pages = int(math.ceil(topic_count / (page_size * 1.0)))
+
     context = RequestContext(request, {'group': group, 'topics': topics, 'curPage': page, 'pages': pages})
     return render_to_response('group.htm', context)
 
@@ -204,13 +206,15 @@ def group(request, group_id, order):
 def group_topic(request, topic_id):
     is_exist = Group_Topic.objects.filter(id=topic_id).exists()
     if not is_exist:
-        pass
-        # return error page TODO
+        return render_to_response('miss/topic.htm', RequestContext(request))
 
     # 每页显示20楼
     page_size = 20
     page = _get_page(request)
     offset = (int(page) - 1) * page_size
+
+    comment_count = Topic_Comment.objects.filter(topic_id=topic_id).count()
+    pages = int(math.ceil(comment_count / (page_size * 1.0)))
 
     tcs = Topic_Comment.objects.filter(topic_id=topic_id)[offset: offset + page_size]
     topic_comments = []
@@ -218,9 +222,10 @@ def group_topic(request, topic_id):
         content = json.loads(tc.content)
         topic_comment = {
             'floor': floor + 1,
-            'date': tc.gmt_create.strftime('%Y-%m-%d %H:%M:%S'),
+            'create_date': tc.gmt_create.strftime('%Y-%m-%d %H:%M:%S'),
             'user_id': tc.user_id,
             'nickname': cache.get_user_nickname(tc.user_id),
+            'avatar': cache.get_user_avatar(tc.user_id),
             'text': content['text'],
             'attachment': content['attachment'],
         }
@@ -228,16 +233,15 @@ def group_topic(request, topic_id):
     topic = cache.get_topic_info(topic_id)
     group = cache.get_group_info_by_topicid(topic['id'])
 
-    # TODO cache
-    comment_count = Topic_Comment.objects.filter(id=topic_id, status='enabled').count()
-    pages = int(math.ceil(comment_count / (page_size * 1.0)))
-
-    context = RequestContext(request, {'group': group, 'topic': topic, 'topicComments': topic_comments, 'curPage': page,
+    context = RequestContext(request, {'group': group,
+                                       'topic': topic,
+                                       'topicComments': topic_comments,
+                                       'curPage': page,
                                        'pages': pages})
     return render_to_response('group_topic.htm', context)
 
 
-# 发布新帖
+# 发布新帖(require_login)
 def new_topic(request, group_id):
     group = cache.get_group_info(group_id)
     context = RequestContext(request, {'group': group})
@@ -246,7 +250,8 @@ def new_topic(request, group_id):
 
 # 注册会员
 def register(request):
-    if request.method == 'POST':  # 提交表单
+    if request.method == 'POST':
+        # 提交表单
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
             register_date = datetime.now()
@@ -256,7 +261,7 @@ def register(request):
                 gmt_modify=register_date,
                 email=form.cleaned_data['email'].strip(),
                 nickname=form.cleaned_data['nickname'].strip(),
-                password=form.cleaned_data['password'].strip(),
+                password=common.encode_password(form.cleaned_data['password'].strip()), # encode passowrd
                 status='enabled')
             user.save()
             # 写登录session
@@ -268,7 +273,8 @@ def register(request):
         else:
             return render_to_response('register.htm', {'form': form})
 
-    else:  # 渲染页面
+    else:
+        # 渲染页面
         return_url = urllib.urlencode({'return_url': _get_return_url(request)})
         register_action_url = '/register/?' + return_url
         return render_to_response('register.htm', {'register_action_url': register_action_url})
@@ -276,7 +282,8 @@ def register(request):
 
 # 登录
 def login(request):
-    if request.method == 'POST':  # 提交表单
+    if request.method == 'POST':
+        # 提交表单
         form = forms.LoginForm(request.POST)
         if form.is_valid():
             # 写登录session
@@ -287,17 +294,19 @@ def login(request):
             return response
         else:
             return render_to_response('login.htm', {'form': form})
-    else:  # 渲染页面
+    else:
+        # 渲染页面
         return_url = urllib.urlencode({'return_url': _get_return_url(request)})
         login_action_url = '/login/?' + return_url
         return render_to_response('login.htm', {'login_action_url': login_action_url})
 
 
-# 包装器
+# login包装器
 def require_login(view):
     def new_view(request, *args, **kwargs):
         if not request.xmanuser['login']:
-            return_url = urllib.urlencode({'return_url': 'http://127.0.0.1:8000' + request.get_full_path()})
+            return_url = urllib.urlencode(
+                {'return_url': config.get_config('SHAREHP_SERVER_HOST') + request.get_full_path()})  #FIXME
             return HttpResponseRedirect('/login/?' + return_url)
         else:
             return view(request, *args, **kwargs)
@@ -307,10 +316,84 @@ def require_login(view):
 
 # 登出
 def loginout(request):
+    # del session
+    session_id = request.COOKIES.get('id')
+    if session_id:
+        cache.del_login_session(session_id)
+
     return_url = _get_return_url(request)
     response = HttpResponseRedirect(return_url)
-    response.set_cookie('id', '', 0)  # del cookie
+    # del cookie
+    response.set_cookie('id', '', 0)
     return response
+
+
+# 修改密码(require)
+def change_password(request):
+    if request.method == "POST":
+        # 提交表单
+        form = forms.ChangePasswordForm(request.POST)
+        if form.is_valid():
+            user_id = _get_current_userid(request)
+            password = common.encode_password(form.cleaned_data['password'].strip())
+            old_password = User.objects.get(id=user_id).password
+            if password != old_password:
+                # 密码错误
+                form._errors["password"] = ErrorList([u"密码不正确!"])
+                context = RequestContext(request, {'form': form})
+                return render_to_response('change_password.htm', context)
+            else:
+                # 修改密码成功
+                new_password = common.encode_password(form.cleaned_data['new_password'].strip())
+                User.objects.filter(id=user_id).update(gmt_modify=datetime.now(), password=new_password)
+                context = RequestContext(request, {'success': True})
+                return render_to_response('change_password.htm', context)
+        else:
+            context = RequestContext(request, {'form': form})
+            return render_to_response('change_password.htm', context)
+    else:
+        # 渲染页面
+        context = RequestContext(request)
+        return render_to_response('change_password.htm', context)
+
+
+# 修改头像 FIXME
+def change_avatar(request):
+    if request.method == "POST":
+        attach = request.POST.get('attach', '').strip()
+        crop_x = request.POST.get('crop_x')
+        crop_y = request.POST.get('crop_y')
+        crop_width = request.POST.get('crop_width')
+        crop_height = request.POST.get('crop_height')
+
+        if not _check_login(request):
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
+        if not default_storage.exists(settings.MEDIA_ROOT + attach):
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "图片丢失，请重新上传!"}))
+
+        crop_result = image.crop_user_avatar(settings.MEDIA_ROOT, attach, (int(crop_x),
+                                                                           int(crop_y),
+                                                                           int(crop_x) + int(crop_width),
+                                                                           int(crop_y) + int(crop_height)))
+
+        avatar_100_url = 'user/avater/' + crop_result['100']['name']
+        image.qiniu_upload(crop_result['100']['path'], avatar_100_url)
+        avatar_40_url = 'user/avater/' + crop_result['40']['name']
+        image.qiniu_upload(crop_result['40']['path'], avatar_40_url)
+        avatar_28_url = 'user/avater/' + crop_result['28']['name']
+        image.qiniu_upload(crop_result['28']['path'], avatar_28_url)
+
+        avatar_info = {
+            '100': avatar_100_url,
+            '40': avatar_40_url,
+            '28': avatar_28_url
+        }
+        User.objects.filter(id=_get_current_userid(request)).update(avatar=json.dumps(avatar_info))
+        return HttpResponse(json.dumps({'success': 0, 'data': {'src': avatar_100_url}}))
+
+    else:
+        context = RequestContext(request)
+        return render_to_response('change_avatar.htm', context)
 
 
 #-------------------------------------------
@@ -319,54 +402,168 @@ def loginout(request):
 # 调用失败： {'success': -1, error_msg: {...}}
 #-------------------------------------------
 
-# 对资源进行评论
-def comment(request):
-    resid = request.POST.get('resid', None)
-    content = request.POST.get('content', None)
-    userid = _get_current_userid(request)
+def _deal_image_resource(image_name):
+    attach_info = {
+        'name': image_name,
+        'path': settings.MEDIA_ROOT + image_name,
+        'size': image.get_pic_size(settings.MEDIA_ROOT + image_name)
+    }
+    # 生成缩略图图&上传
+    thumbnail_info = image.thumbnail_img(attach_info['name'], settings.MEDIA_ROOT)
+    thumbnail_url = 'resource/thumbnail/' + thumbnail_info['name']
+    image.qiniu_upload(thumbnail_info['path'], thumbnail_url)
+
+    # 上传原图
+    attach_url = 'resource/normal/' + attach_info['name']
+    image.qiniu_upload(attach_info['path'], attach_url)
+
+    content = json.dumps({
+        'size': attach_info['size'],  # only image_used
+        'url': attach_url
+    })
+    thumbnail = json.dumps({
+        'size': thumbnail_info['size'],
+        'url': thumbnail_url
+    })
+    return (thumbnail, content)
+
+
+def _deal_video_resource(video_info):
+    img_info = image.save_img(video_info['img'], settings.MEDIA_ROOT)
+    attach_info = {
+        'name': img_info['name'],
+        'path': img_info['path'],
+        'size': img_info['size']
+    }
+    # 生成缩略图图&上传
+    thumbnail_info = image.thumbnail_img(attach_info['name'], settings.MEDIA_ROOT)
+    thumbnail_url = '/resource/thumbnail/' + thumbnail_info['name']
+    image.qiniu_upload(thumbnail_info['path'], thumbnail_url)
+
+    content = json.dumps({
+        'size': '',  #  vidoe not used
+        'url': video_info['url']
+    })
+    thumbnail = json.dumps({
+        'size': thumbnail_info['size'],
+        'url': thumbnail_url
+    })
+    return (thumbnail, content)
+
+
+# FIXME
+def add_new_resource(request):
+    title = request.POST.get('title', '').strip()
+    type = request.POST.get('type')
+    attach = request.POST.get('attach', '').strip()
 
     # check params
-    if not resid or not Resource.objects.filter(id=resid).exists():
-        return HttpResponse(json.dumps({'success': 1, 'error_msg': "resid参数不合法"}))
-    if not userid or not User.objects.filter(id=userid).exists():
-        return HttpResponse(json.dumps({'success': 1, 'error_msg': "userid参数不合法"}))
-    if not content or len(content) > 10240:
-        return HttpResponse(json.dumps({'success': 1, 'error_msg': "content参数不合法"}))
+    if not _check_login(request):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
+    if len(title) <= 0:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源内容不能为空!"}))
+    if type not in ('image', 'video'):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源类型不支持!"}))
+    if len(attach) <= 0:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源无效!"}))
 
-    # insert new comment
+    if type == 'image' and not default_storage.exists(settings.MEDIA_ROOT + attach):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "图片丢失，请重新上传!"}))
+    if type == 'video':
+        video_info = cache.get_tmp_video_info(attach)
+        if not video_info:
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "视频丢失，请重新上传!"}))
+
+    # build filed data
+    if type == 'image':
+        thumbnail, content = _deal_image_resource(attach)
+    else:
+        thumbnail, content = _deal_video_resource(video_info)
+
+    # 保存资源
+    current_date = datetime.now()
+    resource = Resource(
+        gmt_create=current_date,
+        gmt_modify=current_date,
+        user_id=_get_current_userid(request),
+        title=title,
+        type=type,
+        nums=1,  # Depreated
+        thumbnail=thumbnail,
+        content=content,
+        good=0,
+        bad=0,
+        comments=0,
+        status='enabled'
+    )
+    resource.save()
+    return HttpResponse(json.dumps({'success': 0, 'error_msg': ""}))
+
+
+# 对资源进行评论
+def add_resource_comment(request, res_id):
+    content = request.POST.get('content', '').strip()
+    # check params
+    if not _check_login(request):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
+    if not Resource.objects.filter(id=res_id, status='enabled').exists():
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "你评论的资源已经被删除，请刷新页面!"}))
+    if not content:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "评论内容不能为空!"}))
+    if len(content) >= 10240:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "评论内容过长，只能10240个字符!"}))
+
+    # 插入资源评论 FIXME transcation
+    current_time = datetime.now()
     comment = Resource_Comment(
-        gmt_create=datetime.now(),
-        gmt_modify=datetime.now(),
-        res_id=resid,
-        user_id=userid,
+        gmt_create=current_time,
+        gmt_modify=current_time,
+        res_id=res_id,
+        user_id=_get_current_userid(request),
         content=content,
         status='enabled')
     comment.save()
-    return HttpResponse(json.dumps({'success': 0, 'error_msg': ""}))
+    # 资源评论数递增1
+    comments = Resource.objects.get(id=res_id, status='enabled').comments
+    Resource.objects.filter(id=res_id, status='enabled').update(comments=comments + 1, gmt_modify=current_time)
+    return HttpResponse(json.dumps({'success': 0, 'data': {}}))
 
 
 # 发表新话题
 def add_new_topic(request, group_id):
     # 获取发帖的标题&内容
-    title = request.POST.get('title', None)
-    content = request.POST.get('content', None)
+    topic_title = request.POST.get('title', '').strip()
+    topic_content = request.POST.get('content', '').strip()
     # 获取attachment(可选)
-    attach_name = request.POST.get('attachment', '')
-    attach_type = request.POST.get('type', None)
-    attach_path = settings.MEDIA_ROOT + attach_name
+    has_attach = request.POST.get('has_attach', 'false').strip()
+    attach_name = request.POST.get('attach', '').strip()
+    attach_type = request.POST.get('type', '').strip()  # image
+    attach_path = os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), attach_name)
+    attach_url = 'topic/' + attach_name  # FIXME
 
+    # 校验参数
     if not _check_login(request):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
-    if not title or not len(title.strip()):  #  TODO check max-len
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "帖子标题不能为空!"}))
-    if not content or not len(content.strip()):
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "帖子内容不能为空!"}))
-    if attach_name and not default_storage.exists(attach_path):
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "图片丢失，请重新上传!"}))
+    if not topic_title:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题不能为空!"}))
+    if len(topic_title) >= 256:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题过长，只能256个字符!"}))
+    if not topic_content:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题内容不能为空!"}))
+    if len(topic_content) >= 10240:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题内容过长，只能10240个字符!"}))
+    if has_attach == 'true' and not default_storage.exists(attach_path):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器图片丢失，请重新上传!"}))
 
-    #qiniu_helper.upload('group/' + group_id + '/topic/', '')
+    # 上传图片至七牛
+    if has_attach == 'true':
+        try:
+            image.qiniu_upload(attach_path, attach_url)
+        except QiniuUploadFileError:
+            # TODO log error
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
-    attachment = _gen_attachment_info(attach_name, attach_type)
+    attachment = _gen_attachment_info(has_attach, attach_type, attach_path, attach_url)
     current_date = datetime.now()
     # 保存新话题 # FIXME transcation
     new_topic = Group_Topic(
@@ -374,8 +571,8 @@ def add_new_topic(request, group_id):
         gmt_modify=current_date,
         group_id=group_id,
         user_id=_get_current_userid(request),  # won't be None
-        topic_name=title,
-        content='',  # FIXME unused field
+        topic_name=topic_title,
+        content='',  # unused field FIXME
         comments=0,
         status='enabled'
     )
@@ -388,7 +585,7 @@ def add_new_topic(request, group_id):
         user_id=_get_current_userid(request),  # won't be None
         content=json.dumps({
             'attachment': attachment,
-            'text': content
+            'text': topic_content
         }),
         status='enabled'
     )
@@ -397,20 +594,35 @@ def add_new_topic(request, group_id):
 
 
 # 评论话题
-def add_new_comment(request, topic_id):
-    content = request.POST.get('content', None)
+def add_topic_comment(request, topic_id):
+    content = request.POST.get('content', '').strip()
+    # 获取attachment(可选)
+    has_attach = request.POST.get('has_attach', 'false').strip()
+    attach_name = request.POST.get('attach', '').strip()
+    attach_type = request.POST.get('type', '').strip()
+    attach_path = os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), attach_name)
+    attach_url = 'topic/' + attach_name  # FIXME
+
     if not Group_Topic.objects.filter(id=topic_id).exists():
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "对不起你回复的话题已经不存在!"}))
     if not _check_login(request):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
-    if not content or not len(content.strip()):  # TODO check max-len
+    if not len(content.strip()):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "回复内容不能为空!"}))
+    if len(content) >= 10240:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "回复内容过长，只能10240个字符!"}))
+    if has_attach == 'true' and not default_storage.exists(attach_path):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器图片丢失，请重新上传!"}))
 
-    # attachment可选
-    attachment = _gen_attachment_info(
-        request.POST.get('attachment', None),
-        request.POST.get('type', None)
-    )
+    # 上传图片至七牛
+    if has_attach == 'true':
+        try:
+            image.qiniu_upload(attach_path, attach_url)
+        except QiniuUploadFileError:
+            # TODO log error
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
+
+    attachment = _gen_attachment_info(has_attach, attach_type, attach_path, attach_url)
     current_date = datetime.now()
     # 插入回复内容 FIXME transcation
     topic_comment = Topic_Comment(
@@ -427,7 +639,7 @@ def add_new_comment(request, topic_id):
     topic_comment.save()
 
     # 更新topic相关信息
-    topic = Group_Topic.objects.filter(id=topic_id)[0]
+    topic = Group_Topic.objects.get(id=topic_id)
     Group_Topic.objects.filter(id=topic_id).update(gmt_modify=current_date, comments=topic.comments + 1)
     return HttpResponse(json.dumps({'success': 0, 'data': {}}))
 
@@ -445,24 +657,48 @@ def upload_image(request):
     if upload_file.size >= 1024 * 1024:  # 1M
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请上传小于1M的图片!"}))
     # 保存临时文件
-    filename = str(uuid.uuid1()).replace('-', '')
-    default_storage.save(settings.MEDIA_ROOT + filename, ContentFile(upload_file.read()))
-    return HttpResponse(json.dumps({'success': 0, 'data': {'src': filename}}))
+    filename = common.unique_filename()
+    filepath = default_storage.save(os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), filename),
+                                    ContentFile(upload_file.read()))
+    width, height = image.get_image_size(filepath)
+    return HttpResponse(json.dumps({'success': 0, 'data': {'src': filename, 'width': width, 'height': height}}))
+
+# FIXME
+def upload_video(request):
+    video_url = request.POST.get('url')
+    if not _check_login(request):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
+    if not video_url or len(video_url.strip()) <= 0:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请输入一个视频url!"}))
+
+    video_id = _get_video_id(r'.*v_(.+).html', video_url)
+    # FIXME if video_id is none
+    result = urllib.urlopen('http://vxml.56.com/json/%s/?src=site' % video_id).read()
+    video_info = json.loads(result)['info']
+    data = {
+        'id': video_id,
+        'img': video_info['bimg'],
+        'src': video_info['img'],
+        'url': 'http://player.56.com/v_' + video_id + '.swf',  # FIXME just deal 56
+        'title': video_info['Subject']
+    }
+    cache.set_tmp_video_info(data['id'], data, 3600)  # cache 1h
+    return HttpResponse(json.dumps({'success': 0, 'data': data}))
 
 
 #-------------------------------------------
 # 内部接口
 #-------------------------------------------
-
+# 写登录session
 def _do_login(email):
-    user = User.objects.get(email=email)
-    data = {'id': user.id, 'nickname': user.nickname}
-    id = uuid.uuid1()
-    cache.set_login_session(id, json.dumps(data))
+    user = User.objects.get(email=email)  # ignore exception
+    data = {'id': user.id, 'nickname': user.nickname, 'email': email}
+    id = common.unique_session_id()
+    cache.set_login_session(id, data)
     return id
 
 
-# 获取return_url(登录和注册时用到）
+# 获取return_url(登录和注册时用）
 def _get_return_url(request):
     return_url = request.GET.get('return_url', None)
     referer = request.META.get('HTTP_REFERER', None)
@@ -470,11 +706,14 @@ def _get_return_url(request):
     if not return_url and referer:
         return_url = referer
     if not return_url or not _safe_return_url(return_url):
-        # default return url
-        return_url = "http://127.0.0.1:8000/index/"  #FIXME
+        return_url = config.get_config('SHAREHP_DEFAULT_RETURN_URL')  # default return url
     return return_url
 
 
+# 校验return_url安全性
+# 1. 空的return_url
+# 2. 非本域名url TODO
+# 3. 含有login或者register的return_url(防止死循环)
 def _safe_return_url(return_url):
     if not return_url or not return_url.strip():
         return False
@@ -484,37 +723,60 @@ def _safe_return_url(return_url):
         return True
 
 
+# 检查用户登录态
 def _check_login(request):
     return request.xmanuser['login']
 
 
+# 获取当前登录用户的user_id(没有登录返回None)
 def _get_current_userid(request):
     if request.xmanuser['login']:
         return request.xmanuser['id']
 
 
+# 获取当前分页，默认返回1
 def _get_page(request):
-    page = request.GET.get('page', None)
-    if not page or int(page) <= 0:
-        page = 1
-    return page
+    return common.safe_int(request.GET.get('page', 1), 1)
 
 
-def _gen_attachment_info(attach_name, type):
+# 生成topic_comment表的content字段(json)中attachment信息
+# add_new_topic/add_topic_comment 使用
+def _gen_attachment_info(has_attach, attach_type, attach_path, attach_url):
     # default value
     attachment = {
         'type': '',
-        'size': '',
+        'size': '',  # only image used
         'url': '',
         'exsit': False
     }
-
-    if type == 'image':
-        attachment['type'] = type
-        attachment['size'] = ''  # TODO
-        attachment['url'] = attach_name
+    if has_attach == 'false':
+        pass  # do nothing
+    elif attach_type == 'image':
+        attachment['type'] = attach_type
+        attachment['size'] = image.get_image_size(attach_path)
+        attachment['url'] = attach_url
         attachment['exsit'] = True
-    elif type == 'video':
-        pass
+    elif attach_type == 'video':
+        pass  # not support now!
+    else:
+        pass  # error!
+
     return attachment
 
+# FIXME
+def _last_resource_id(res_id):
+    last_res_id = cache.get_last_resource_id()
+    if not last_res_id:
+        last_res_id = Resource.objects.filter(status='enabled').aggregate(Max('id'))['id__max']
+        cache.set_last_resource_id(last_res_id)
+    return last_res_id == res_id
+
+
+def _first_resource_id(res_id):
+    return res_id == 1  # id为1的这条资源永远不会删除
+
+
+def _get_video_id(pattern, text):
+    m = re.search(pattern, text)
+    if m:
+        return m.group(1)
