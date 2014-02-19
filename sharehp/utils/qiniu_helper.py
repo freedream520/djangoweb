@@ -1,9 +1,9 @@
 import qiniu.rs
 import qiniu.conf
 import qiniu.io
-from utils import config
-from exception import ConfigArgumentError
-from exception import QiniuUploadFileError
+import config
+from ..exception import ConfigArgumentError
+from ..exception import QiniuUploadFileError
 
 _ACCESS_KEY = config.get_config("QINIU_ACCESS_KEY")
 _SECRET_KEY = config.get_config("QINIU_SECRET_KEY")
