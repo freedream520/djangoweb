@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from utils import common
+import common
 import Image
 import math
 import urllib
@@ -17,7 +17,7 @@ def save_img(img_url, target_dir):
     return {
         'name': filename,
         'path': target_path,
-        'size': get_pic_size(target_path)
+        'size': get_image_size(target_path)
     }
 
 
@@ -59,7 +59,7 @@ def thumbnail_img(filename, filedir):
     return {
         'name': filename,
         'path': target_path,
-        'size': get_pic_size(target_path)
+        'size': get_image_size(target_path)
     }
 
 
@@ -70,26 +70,26 @@ def crop_user_avatar(filedir, filename, box):
         new_img = img.crop(box)
 
         target_path = filedir + filename
-        # 保存缩略图 100*100
+        # 保存缩略图 big
         new_img.thumbnail((100, 100), Image.ANTIALIAS)
-        new_img.save(target_path + '.100', "JPEG")
-        # 保存缩略图 40*40
-        new_img.thumbnail((40, 40), Image.ANTIALIAS)
-        new_img.save(target_path + '.40', "JPEG")
-        # 保存缩略图 28*28
+        new_img.save(target_path + '.big', "JPEG")
+        # 保存缩略图 middle
+        new_img.thumbnail((36, 36), Image.ANTIALIAS)
+        new_img.save(target_path + '.mid', "JPEG")
+        # 保存缩略图 small
         new_img.thumbnail((28, 28), Image.ANTIALIAS)
-        new_img.save(target_path + '.28', "JPEG")
+        new_img.save(target_path + '.small', "JPEG")
 
     return {
-        '100': {
-            'name': filename + '.100',
-            'path': target_path + '.100'},
-        '40': {
-            'name': filename + '.40',
-            'path': target_path + '.40'},
-        '28': {
-            'name': filename + '.28',
-            'path': target_path + '.28'},
+        'big': {
+            'name': filename + '.big',
+            'path': target_path + '.big'},
+        'mid': {
+            'name': filename + '.mid',
+            'path': target_path + '.mid'},
+        'small': {
+            'name': filename + '.small',
+            'path': target_path + '.small'},
     }
 
 # 获取图片尺寸
