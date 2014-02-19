@@ -8,26 +8,25 @@ from django.template import RequestContext
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
-from exception import QiniuUploadFileError
 from datetime import datetime
+from exception import QiniuUploadFileError
 from models import Resource
 from models import User
 from models import Resource_Comment
 from models import Group
 from models import Group_Topic
 from models import Topic_Comment
+from utils import image
+from utils import video
 from utils import prettydate
 from utils import common
 from utils import config
 import json
 import math
+import urllib
+import os
 import forms
 import cache
-import urllib
-import re
-import image
-import os
-
 
 # 分类页面
 def classify(request, tag):
@@ -49,7 +48,7 @@ def classify(request, tag):
             'avatar': cache.get_user_avatar(r.user_id),
             'title': r.title,
             'type': r.type,
-            'thumbnail': json.loads(r.thumbnail), # json
+            'thumbnail': json.loads(r.thumbnail),  # json
             'comments': r.comments
         }
         res_list.append(res)
@@ -255,17 +254,23 @@ def register(request):
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
             register_date = datetime.now()
+            default_avatar =  {
+                'big': 'user/avater/default.big',
+                'mid': 'user/avater/default.mid',
+                'small': 'user/avater/default.small'
+            }
             # 保存用户信息
             user = User(
                 gmt_create=register_date,
                 gmt_modify=register_date,
                 email=form.cleaned_data['email'].strip(),
                 nickname=form.cleaned_data['nickname'].strip(),
-                password=common.encode_password(form.cleaned_data['password'].strip()), # encode passowrd
+                password=common.encode_password(form.cleaned_data['password'].strip()),  # encode passowrd
+                avatar=json.dumps(default_avatar),
                 status='enabled')
             user.save()
             # 写登录session
-            session_id = _do_login(user.id)
+            session_id = _do_login(user.email)
             return_url = _get_return_url(request)
             response = HttpResponseRedirect(return_url)
             response.set_cookie('id', session_id)
@@ -357,10 +362,10 @@ def change_password(request):
         return render_to_response('change_password.htm', context)
 
 
-# 修改头像 FIXME
+# 修改头像
 def change_avatar(request):
     if request.method == "POST":
-        attach = request.POST.get('attach', '').strip()
+        attach_name = request.POST.get('attach', '').strip()
         crop_x = request.POST.get('crop_x')
         crop_y = request.POST.get('crop_y')
         crop_width = request.POST.get('crop_width')
@@ -368,31 +373,39 @@ def change_avatar(request):
 
         if not _check_login(request):
             return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
-        if not default_storage.exists(settings.MEDIA_ROOT + attach):
+        if not default_storage.exists(os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), attach_name)):
             return HttpResponse(json.dumps({'success': -1, 'error_msg': "图片丢失，请重新上传!"}))
 
-        crop_result = image.crop_user_avatar(settings.MEDIA_ROOT, attach, (int(crop_x),
-                                                                           int(crop_y),
-                                                                           int(crop_x) + int(crop_width),
-                                                                           int(crop_y) + int(crop_height)))
-
-        avatar_100_url = 'user/avater/' + crop_result['100']['name']
-        image.qiniu_upload(crop_result['100']['path'], avatar_100_url)
-        avatar_40_url = 'user/avater/' + crop_result['40']['name']
-        image.qiniu_upload(crop_result['40']['path'], avatar_40_url)
-        avatar_28_url = 'user/avater/' + crop_result['28']['name']
-        image.qiniu_upload(crop_result['28']['path'], avatar_28_url)
+        crop_result = image.crop_user_avatar(config.get_config('SHAREHP_UPLOAD_DIR'), attach_name,
+                                             (int(crop_x),
+                                              int(crop_y),
+                                              int(crop_x) + int(crop_width),
+                                              int(crop_y) + int(crop_height)))
+        try:
+            avatar_big_url = 'user/avater/' + crop_result['big']['name']
+            image.qiniu_upload(crop_result['big']['path'], avatar_big_url)
+            avatar_mid_url = 'user/avater/' + crop_result['mid']['name']
+            image.qiniu_upload(crop_result['mid']['path'], avatar_mid_url)
+            avatar_small_url = 'user/avater/' + crop_result['small']['name']
+            image.qiniu_upload(crop_result['small']['path'], avatar_small_url)
+        except QiniuUploadFileError: # FIXME
+            # TODO Log error
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
         avatar_info = {
-            '100': avatar_100_url,
-            '40': avatar_40_url,
-            '28': avatar_28_url
+            'big': avatar_big_url,
+            'mid': avatar_mid_url,
+            'small': avatar_small_url
         }
-        User.objects.filter(id=_get_current_userid(request)).update(avatar=json.dumps(avatar_info))
-        return HttpResponse(json.dumps({'success': 0, 'data': {'src': avatar_100_url}}))
+        User.objects.filter(id=_get_current_userid(request)).update(gmt_modify=datetime.now(),
+                                                                    avatar=json.dumps(avatar_info))
+        cache.del_user_info(_get_current_userid(request)) # important!
+
+        return HttpResponse(json.dumps({'success': 0, 'data': {'src': avatar_big_url}}))
 
     else:
-        context = RequestContext(request)
+        avatar = json.loads(User.objects.get(id=_get_current_userid(request)).avatar)
+        context = RequestContext(request, {'avatar': avatar})
         return render_to_response('change_avatar.htm', context)
 
 
@@ -663,26 +676,30 @@ def upload_image(request):
     width, height = image.get_image_size(filepath)
     return HttpResponse(json.dumps({'success': 0, 'data': {'src': filename, 'width': width, 'height': height}}))
 
-# FIXME
+
+# 上传视频
 def upload_video(request):
-    video_url = request.POST.get('url')
+    video_url = request.POST.get('url', '').strip()
     if not _check_login(request):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
-    if not video_url or len(video_url.strip()) <= 0:
+    if len(video_url.strip()) <= 0:
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请输入一个视频url!"}))
+    if not video.support(video_url):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "对不起，你输入的视频链接暂时不支持!"}))
+    # 获取视频信息
+    video_info = video.video_info(video_url)
+    if not video_info['success']:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "无法获取视频信息，请确认视频链接的正确性!"}))
 
-    video_id = _get_video_id(r'.*v_(.+).html', video_url)
-    # FIXME if video_id is none
-    result = urllib.urlopen('http://vxml.56.com/json/%s/?src=site' % video_id).read()
-    video_info = json.loads(result)['info']
     data = {
-        'id': video_id,
-        'img': video_info['bimg'],
+        'id': common.unique_attach_id() ,
+        'bimg': video_info['bimg'],
         'src': video_info['img'],
-        'url': 'http://player.56.com/v_' + video_id + '.swf',  # FIXME just deal 56
-        'title': video_info['Subject']
+        'title': video_info['title'],
+        'swf': video_info['swf'],
+        'url': video_info['url']
     }
-    cache.set_tmp_video_info(data['id'], data, 3600)  # cache 1h
+    cache.set_video_info(data['id'], data)  # cache 1h
     return HttpResponse(json.dumps({'success': 0, 'data': data}))
 
 
@@ -763,7 +780,8 @@ def _gen_attachment_info(has_attach, attach_type, attach_path, attach_url):
 
     return attachment
 
-# FIXME
+
+# 获取最新的资源ID
 def _last_resource_id(res_id):
     last_res_id = cache.get_last_resource_id()
     if not last_res_id:
@@ -776,7 +794,3 @@ def _first_resource_id(res_id):
     return res_id == 1  # id为1的这条资源永远不会删除
 
 
-def _get_video_id(pattern, text):
-    m = re.search(pattern, text)
-    if m:
-        return m.group(1)
