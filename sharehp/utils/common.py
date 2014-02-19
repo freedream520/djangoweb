@@ -15,6 +15,10 @@ def unique_session_id():
     return str(uuid.uuid1()).replace('-', '')
 
 
+def unique_attach_id():
+    return str(uuid.uuid1()).replace('-', '')
+
+
 def safe_int(val, default=0):
     try:
         val = int(val)
