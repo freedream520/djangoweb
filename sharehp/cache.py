@@ -3,6 +3,7 @@ from models import User
 from models import Group_Topic
 from models import Group
 from utils import config
+from utils import common
 from exception import IllegalArgumentError
 import redis
 import json
@@ -22,28 +23,18 @@ def _get(key):
     return _redisIns.get(key)  # if key not exist, return None
 
 
-def _set(key, value):
-    return _redisIns.set(key, value)
-
-
-def _del(key):
-    return _redisIns.delete(key)
-
-
-def _set_timeout(key, value, timeout):
+def _set(key, value, timeout=-1):
     ret = _redisIns.set(key, value)
-    _redisIns.expire(key, timeout)
+    if timeout and timeout > 0:
+        _redisIns.expire(key, timeout)
     return ret
 
 
 # hash type
-def _hmset(key, mapping):
-    return _redisIns.hmset(key, mapping)
-
-
-def _hmset_timeout(key, mapping, timeout):
+def _hmset(key, mapping, timeout=-1):
     ret = _redisIns.hmset(key, mapping)
-    _redisIns.expire(key, timeout)
+    if timeout and timeout > 0:
+        _redisIns.expire(key, timeout)
     return ret
 
 
@@ -55,6 +46,10 @@ def _hgetall(key):
 # if key not exist, return empty list []
 def _lrange(key, start, end):
     return _redisIns.lrange(key, start, end)
+
+
+def _del(key):
+    return _redisIns.delete(key)
 
 
 # 设置用户登录session
@@ -77,10 +72,8 @@ def get_login_session(id):
 
 # 删除用户登录session
 def del_login_session(id):
-    if not id:
-        return
-    key = 'login-session:' + str(id)
-    return _del(key)
+    if id:
+        return _del('login-session:' + str(id))
 
 
 # 获取用户信息
@@ -104,6 +97,11 @@ def get_user_info(user_id):
             # TODO log error
             user_info = {}
     return user_info
+
+
+def del_user_info(user_id):
+    if user_id:
+        return _del('user:' + str(user_id))
 
 
 # 获取用户nickname
@@ -222,25 +220,33 @@ def get_last_resource_id():
     return _get(key)
 
 
-# FIXME
+# 设置最新的资源ID
 def set_last_resource_id(res_id):
+    key = 'last-resource-id'
+
     if not res_id:
         raise IllegalArgumentError("res_id can't be None!")
-    if int(res_id) <= 0:
-        pass  # TODO throw exception
-    key = 'last-resource-id'
-    return _set(key, res_id)
+    if common.safe_int(res_id, 0):
+        _del(key)
+    return _set(key, res_id, 5 * 60)  # cache 5min
 
 
-def set_tmp_video_info(id, value, timeout):
+# 保存视频信息(defautl cache 1h)
+def set_video_info(id, value, timeout=3600):
     if not id or not value or timeout < 0:
-        pass  # TODO throw exception
+        raise IllegalArgumentError("video params illegal!")
     key = 'video-info:' + id
-    return _hmset_timeout(key, value, timeout)
+    return _hmset(key, value, timeout)
 
 
-def get_tmp_video_info(id):
+# 获取视频信息
+def get_video_info(id):
     if not id:
-        pass  # TODO throw exception
+        raise IllegalArgumentError("video id can't be None!")
     key = 'video-info:' + id
     return _hgetall(key)
+
+
+
+
+
