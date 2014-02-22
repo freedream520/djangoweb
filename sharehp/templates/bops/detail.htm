@@ -1,10 +1,12 @@
+{% load poll_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/static/sharehp/css/test.css" rel="stylesheet" media="screen">
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"
+          media="screen">
+    <link href="/static/sharehp/css/sharehp.css" rel="stylesheet" media="screen">
 </head>
 <body>
 {% include "header.htm" %}
@@ -12,45 +14,34 @@
 <div class="container">
     <!-- 左边资源 -->
     <div class="span8">
-        <div class="group-wall">
+        <div class="background-wall">
             <!-- 标题 -->
             <div class="detail-res-title">
-                <p class="caption">{{ res.title }}</p>
+                <p class="caption word-break">{{ res.title }}</p>
             </div>
             <!-- 内容 -->
             <div id="detail-{{ res.id }}" class="text-center detail-res-title">
                 {% ifequal  res.type "image" %}
-                    <img src="/static/sharehp/tmp/normal/{{ res.content.name }}">
+                    <img src="{{ res.content.normal_name|tmp_server_url }}">
                 {% else %}
                     <object width="575" height="440">
                         <param value="{{ res.content.url }}" name="movie">
                         <param value="transparent" name="wmode">
-                        <param value="sameDomain" name="allowScriptAccess">
-                        <param value="true" name="allowFullScreen">
-                        <param value="&amp;auto_start=off" name="FlashVars">
+                        <param value="auto_start=off" name="FlashVars">
                         <embed width="575" height="440" allowscriptaccess="sameDomain" allownetworking="all"
                                wmode="transparent" allowfullscreen="true"
-                               flashVars="auto_start=off&userid=239410733&sex=male&born=1988"
+                               flashVars="auto_start=off"
                                type="application/x-shockwave-flash" src={{ res.content.url }}>
                     </object>
                 {% endifequal %}
-            </div>
-            <div class="item-footer">
-                <form>
-                    <button class="btn btn-success pull-right" type="button">通过</button>
-                    <button class="btn btn-danger" type="button">拒绝</button>
-                </form>
             </div>
         </div>
         <br>
     </div>
 </div>
 <br>
-
-<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
-<script src="/static/sharehp/js/bootstrap.min.js"></script>
-<script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
-<script src="/static/sharehp/js/common.js"></script>
+<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 </body>
 </html>
 
