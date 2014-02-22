@@ -3,8 +3,10 @@
 <html lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+    <title>不正常人类研究中心</title>
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"
+          media="screen">
+    <link href="/static/sharehp/css/sharehp.css" rel="stylesheet">
 </head>
 <body>
 {% include "header.htm" %}
@@ -12,7 +14,7 @@
 <div class="container">
     <div class="row ">
         <div class="span8">
-            <div class="group-wall">
+            <div class="background-wall">
                 <ul class="breadcrumb clearfix">
                     <!-- FIXME highlight -->
                     <li class="active">
@@ -29,7 +31,7 @@
                 {% for topic in topics %}
                     <div class="media topic-sep">
                         <a class="pull-left" href="#">
-                            <img class="img-circle" width="36" height="36" src="{{ topic.avatar.40|static_url}}">
+                            <img class="img-circle" width="36" height="36" src="{{ topic.avatar.mid|static_url}}">
                         </a>
 
                         <div class="media-body">
@@ -38,8 +40,8 @@
                                 <span class="create-time"> {{ topic.publish_date }}发布 </span>
                                 <span class="pull-right label">{{ topic.comments }} 回复</span>
                             </div>
-                            <div class="topic-name">
-                                <a href="/group/topic/{{ topic.id }}/"><h4>{{ topic.topic_name }}</h4>
+                            <div class="topic-name word-break">
+                                <a href="/group/topic/{{ topic.id }}/"><h5>{{ topic.topic_name }}</h5>
                                 </a>
                             </div>
                         </div>
@@ -56,16 +58,13 @@
 </div>
 <br>
 
-
-<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
-<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="/static/sharehp/js/bootstrap-paginator.js"></script>
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 <script type="text/javascript">
-    {% ifnotequal curPage "1" %}
-        initPaginator({{curPage}}, {{pages}}, "http://127.0.0.1:8000/group/{{ group.id }}/?page=")
-    {% endifnotequal %}
+    initPaginator({{curPage}}, {{pages}}, "{{ pageUrl }}")
 </script>
 
 </body>

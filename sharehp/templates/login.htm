@@ -1,54 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
-		<link href="/static/sharehp/css/test.css" rel="stylesheet" media="screen">
-	</head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不正常人类研究中心</title>
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"
+          media="screen">
+    <link href="/static/sharehp/css/sharehp.css" rel="stylesheet" media="screen">
+</head>
 
-	<body>
-		<!-- 导航栏 -->
-		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="navbar-inner ">
-			    <div class="container">
-				    <ul class="nav  nav-stacked">
-                        <li><a href="/index/">最新内容</a></li>
-                        <li><a href="/tag/video/">搞笑视频</a></li>
-                        <li><a href="/tag/image/">搞笑图片</a></li>
-                        <li><a href="/groups/">小组</a></li>
-			        </ul>
-			    </div>
-			</div>
-		</div>
+<body>
+<!-- 导航栏 -->
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner ">
+        <div class="container">
+            <ul class="nav  nav-stacked">
+                <li><a href="/index/">最新内容</a></li>
+                <li><a href="/tag/video/">搞笑视频</a></li>
+                <li><a href="/tag/image/">搞笑图片</a></li>
+                <li><a href="/groups/">小组</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
 
-		<header class="jumbotron subhead">
-		  <div class="container">
-		    <h2 class="text-center">不正常人类研究中心</h2>
-		  </div>
-		</header>
+<header class="jumbotron subhead">
+    <div class="container">
+        <h2 class="text-center">不正常人类研究中心</h2>
+    </div>
+</header>
 
-		<br>
+<br>
 
-		<div  class="container">
-			<div class="form-signin-register">
-				<form action="{{ login_action_url }}" method="post">
-					<div class="form-title">
-						<h4>登陆帐号</h4>
-				    </div>
-					<span class="error">{{form.non_field_errors}}</span>
-					<span class="error">{{ form.email.errors }}</span>
-					<input id="id_email" name="email" type="text" class="input-block-level" placeholder="邮箱" value="{{form.email.value}}">
-					<span class="error">{{ form.password.errors }}</span>
-					<input id="id_password" name="password" type="password" class="input-block-level" placeholder="密码" value="{{form.password.value}}">
-					<button class="btn input-block-level btn-primary" type="submit">登陆</button>
-				</form>
-                <a href="/register/">没有帐号？立即注册</a>
-			</div>
-		</div>
+<div class="container">
+    <div class="form-signin-register">
+        <form action="{{ login_action_url }}" method="post">
+            <div class="form-title">
+                <h4>登陆帐号</h4>
+            </div>
+            <span class="error">{{ form.non_field_errors }}</span>
+            <span class="error">{{ form.email.errors }}</span>
+            <input id="id_email" name="email" type="text" class="input-block-level" placeholder="邮箱"
+                   value="{{ form.email.value }}">
+            <span class="error">{{ form.password.errors }}</span>
+            <input id="id_password" name="password" type="password" class="input-block-level" placeholder="密码"
+                   value="{{ form.password.value }}">
+            <button class="btn input-block-level btn-primary" type="submit">登陆</button>
+        </form>
+        <a href="/register/">没有帐号？立即注册</a>
+    </div>
+</div>
 
-		<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
-    	<script src="/static/sharehp/js/bootstrap.min.js"></script>
-	</body>
+<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+</body>
 </html>
 

@@ -4,8 +4,9 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/static/sharehp/css/test.css" rel="stylesheet" media="screen">
+    <title>不正常人类研究中心</title>
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/sharehp.css" rel="stylesheet" media="screen">
 </head>
 <body>
 {% include "header.htm" %}
@@ -14,10 +15,11 @@
     <div class="row">
         <!-- 左边资源 -->
         <div class="span8">
-            <div class="group-wall">
+            <div class="background-wall">
                 <!-- 作者-->
                 <div class="detail-res-author">
-                    <a href="#"><img class="img-circle" src="{{ res.avatar.40|static_url }}"></a>
+                    <a href="#"><img class="img-circle" width="36" height="36"
+                                     src="{{ res.avatar.mid|static_url }}"></a>
                     <a href="/user/{{ res.user_id }}/" style="padding-left: 5px;">{{ res.nickname }}</a>
                     <span class="create-time" style="padding-left: 3px;">{{ res.create_date }}</span>
 
@@ -39,7 +41,7 @@
                 </div>
                 <!-- 标题 -->
                 <div class="detail-res-title">
-                    <p class="caption">{{ res.title }}</p>
+                    <p class="caption word-break">{{ res.title }}</p>
                 </div>
                 <!-- 内容 -->
                 <div id="detail-{{ res.id }}" class="text-center detail-res-title">
@@ -50,12 +52,10 @@
                         <object width="575" height="440">
                             <param value="{{ res.content.url }}" name="movie">
                             <param value="transparent" name="wmode">
-                            <param value="sameDomain" name="allowScriptAccess">
-                            <param value="true" name="allowFullScreen">
-                            <param value="&amp;auto_start=off" name="FlashVars">
+                            <param name="bgcolor" value="#FFFFFF">
                             <embed width="575" height="440" allowscriptaccess="sameDomain" allownetworking="all"
                                    wmode="transparent" allowfullscreen="true"
-                                   flashVars="auto_start=off&userid=239410733&sex=male&born=1988"
+                                   flashVars="auto_start=off"
                                    type="application/x-shockwave-flash" src="{{ res.content.url }}">
                         </object>
                     {% endifequal %}
@@ -63,11 +63,15 @@
             </div>
             <br>
 
-            <div class="group-wall">
+            <div class="background-wall">
+                <div id="error-msg" class="alert alert-error fade in"
+                     style="display: none; padding: 2px 35px 2px 8px; margin-bottom: 12px;">
+                </div>
                 <div class="control-group clearfix">
                     {% if request.xmanuser.login %}
                         <textarea id="res-comment-content" rows="2" class="btn-block" placeholder="添加评论"></textarea>
-                        <button id="submit-res-comment" class="btn btn-primary pull-right" type="button">发布评论
+                        <button id="submit-res-comment" class="btn btn-primary pull-right" data-loading-text="正在提交"
+                                type="button">发布评论
                         </button>
                     {% else %}
                         <textarea id="res-comment-content" rows="2" class="btn-block" readonly="readonly"
@@ -88,7 +92,8 @@
                             {% for comment in commentList %}
                                 <li class="media res-comment-item">
                                     <a class="pull-left" href="#">
-                                        <img class="img-circle" width="36" height="36" src="{{ comment.avatar.36|static_url }}">
+                                        <img class="img-circle" width="36" height="36"
+                                             src="{{ comment.avatar.mid|static_url }}">
                                     </a>
 
                                     <div class="media-body">
@@ -97,7 +102,7 @@
                                         <span class="create-time"
                                               style="font-size:12px;padding-left: 3px;">{{ comment.create_date }}</span>
 
-                                        <p> {{ comment.content|linebreaksbr }} </p>
+                                        <p class="word-break"> {{ comment.content|white_space|linebreaksbr }} </p>
                                     </div>
                                 </li>
                             {% endfor %}
@@ -117,8 +122,8 @@
 <br>
 {% include 'footer.htm' %}
 
-<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
-<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 <script src="/static/sharehp/js/detail.js"></script>

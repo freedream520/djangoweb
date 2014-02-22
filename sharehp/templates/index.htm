@@ -3,8 +3,9 @@
 <html lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+    <title>不正常人类研究中心</title>
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/sharehp.css" rel="stylesheet">
 </head>
 <body>
 {% include "header.htm" %}
@@ -14,15 +15,18 @@
         <div class="waterfall-span pull-left">
             {% for res in resList %}
                 <div class="waterfall-wall">
-                    <a href="/detail/{{ res.type }}/{{ res.id }}/" target="_blank" style="position:relative">
-                        <img width="{{ res.thumbnail.size.0 }}" height="{{ res.thumbnail.size.1 }}" class="img-top-rounded"
-                             src="{{ res.thumbnail.url|static_url }}">
-                        {% ifequal res.type "video" %}
-                            <span class="play-icon"></span>
-                        {% endifequal %}
-                    </a>
+                    <div style="position:relative;">
+                        <a href="/detail/{{ res.type }}/{{ res.id }}/" target="_blank">
+                            <img width="{{ res.thumbnail.size.0 }}" height="{{ res.thumbnail.size.1 }}"
+                                 class="img-top-rounded"
+                                 src="{{ res.thumbnail.url|static_url }}">
+                            {% ifequal res.type "video" %}
+                                <span class="play-icon"></span>
+                            {% endifequal %}
+                        </a>
+                    </div>
 
-                    <p class="waterfall-title">{{ res.title }}</p>
+                    <p class="waterfall-title word-break">{{ res.title }}</p>
 
                     <div class="waterfall-bottom clearfix">
                         <span class="create-time">{{ res.create_date }}</span>
@@ -37,8 +41,8 @@
 
 {% include 'footer.htm' %}
 
-<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
-<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 </body>

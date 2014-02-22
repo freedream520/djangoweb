@@ -1,8 +1,8 @@
-<div class="group-wall">
+{% load poll_extras %}
+<div class="background-wall">
     <div class="clearfix">
         <a href="/group/{{ group.id }}">
-            <!-- FIXME hardcode-->
-            <img class="img-rounded pull-left" src="/static/sharehp/img/group1.jpg">
+            <img class="img-rounded pull-left" width="75" height="75" src="{{ group.avatar.big|static_url }}">
         </a>
         <div style="display: inline-block; margin-left: 15px;">
             <h5>{{ group.group_name }}</h5>

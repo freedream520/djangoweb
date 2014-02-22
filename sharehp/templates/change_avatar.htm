@@ -1,9 +1,11 @@
+{% load poll_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <link href="/static/sharehp/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <link href="/static/sharehp/css/test.css" rel="stylesheet">
+    <title>不正常人类研究中心</title>
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/static/sharehp/css/sharehp.css" rel="stylesheet">
     <link href="/static/sharehp/css/jquery.fileupload.css" rel="stylesheet">
     <link href="/static/sharehp/css/jquery.Jcrop.css" rel="stylesheet" type="text/css"/>
     <link href="/static/sharehp/css/demos.css" rel="stylesheet" type="text/css"/>
@@ -13,21 +15,27 @@
 <div class="container">
     <div class="row">
         <div class="span8">
-            <div class="group-wall">
+            <div class="background-wall">
                 <div id="upload-avatar">
-                <span class="btn btn-success btn-small fileinput-button">
-                    <i class="icon-picture"></i>
-                    <span>上传新头像</span>
-                    <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
-                </span>
+                    <span class="btn btn-success btn-small fileinput-button">
+                        <i class="icon-picture"></i>
+                        <span>上传新头像</span>
+                        <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
+                    </span>
+
+                    <div id="crop-avatar" style="margin-top: 25px">
+                        <img class="img-rounded" src="{{ avatar.big|static_url }}">
+                        <strong>当前头像</strong>
+                    </div>
+
                 </div>
-                <div style="margin-bottom: 150px">
+                <div style="margin-bottom: 120px">
                 </div>
             </div>
         </div>
 
         <div class="span4">
-            <div class="group-wall">
+            <div class="background-wall">
                 <ul class="nav nav-pills nav-stacked">
                     <li class="active">
                         <a href="/account/change_avatar/">我的头像</a>
@@ -43,8 +51,8 @@
     <br>
     <br>
 </div>
-<script src="/static/sharehp/js/jquery-1.7.1.min.js"></script>
-<script src="/static/sharehp/js/bootstrap.min.js"></script>
+<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="/static/sharehp/js/upload/vendor/jquery.ui.widget.js"></script>
 <script src="/static/sharehp/js/upload/jquery.iframe-transport.js"></script>
 <script src="/static/sharehp/js/upload/jquery.fileupload.js"></script>
@@ -111,7 +119,7 @@
             },
             done: function (e, result) {
                 result = JSON.parse(JSON.stringify(result.result));
-                // 图片上传成功 FIXME
+                // 图片上传成功
                 if (result.success == 0) {
                     var img_src = '/static/sharehp/tmp/' + result.data.src;
                     var img_width = result.data.width;
@@ -123,6 +131,7 @@
                     init_jcrop(img_width, img_height);
                     $('#submit-avatar').bind('click', function () {
                         // check post param FIXME
+                        $('#submit-avatar').button('loading');
                         $.post('/account/change_avatar/',
                                 {
                                     attach: attach_id,
@@ -134,10 +143,13 @@
                                 function (result, status) {
                                     result = JSON.parse(result);
                                     if (result.success == 0) {
-                                        // TODO
+                                        var src = result.data.src;
+                                        $('#upload-avatar').html(change_avatar_success(src));
+
                                     }
+                                    $('#submit-avatar').button('reset');
                                 });
-                    })
+                    });
                     $('#crop-avatar').css('display', 'block');
                 } else {
                 }
@@ -153,7 +165,13 @@
             target_image = '<img style="width: 300px" src=' + src + ' id="target"/>';
         }
         return '<div id="crop-avatar" class="article clearfix" style="display: none"><h4>请拖动矩形框选择裁剪区域</h4><table><tr><td>' + target_image + '</td><td>' + '<img width="40" src="http://res.baoz.cn/imgs/arrow-1.png"></td><td><div style="margin-left:8px;width:100px;height:100px;overflow:hidden;">' +
-                preview_image + '</div></td></tr></table><br><button id="submit-avatar" class="btn btn-large btn-primary" type="button">确定</button></div>'
+                preview_image + '</div></td></tr></table><br><button id="submit-avatar" class="btn btn-large btn-primary" type="button" data-loading-text="正在提交">确定</button></div>'
+
+
+    }
+
+    function change_avatar_success(image_src) {
+        return '<div class="alert alert-success"><h5>修改头像成功!</h5></div>'
     }
 </script>
 </body>
