@@ -1,18 +1,35 @@
 $(function () {
+    var attach_id = '';
+
     $('#fileupload').fileupload({
         dataType: 'json',
         add: function (e, data) {
-            $('#preview-img-box').children('img').remove();
-            $('#preview-img-box').append('<img id="loading-image" style="border: 1px solid #EBE6DE;" src="/static/sharehp/img/loading.gif">');
+            // 清空之前所有预览信息
+            $('#preview-img-box').children().remove();
+            // 显示loading图片
+            $('#preview-img-box').append('<img id="loading-image" style="border: 1px solid #EBE6DE;" src="http://sharehp.qiniudn.com/share/loading.gif">');
             data.submit();
         },
         done: function (e, result) {
-            var result = JSON.parse(JSON.stringify(result.result))
-            // 图片上传成功 FIXME
+            result = JSON.parse(JSON.stringify(result.result));
+            // 图片上传成功
             if (result.success == 0) {
                 var src = result.data.src;
-                $('#preview-img-box').children('img').remove();
-                $('#preview-img-box').append('<img id="tmp_image" style="border: 1px solid #EBE6DE;" width="200" height="80" src=/static/sharehp/tmp/' + src + ' >');
+                attach_id = src;
+                // 移除loading
+                $('#preview-img-box').children().remove();
+                // 添加预览信息: x按钮
+                $('#preview-img-box').append('<a id="btn-close-preview" class="btn-close-preview" href="###"></a>');
+                // 添加预览信息: 图片 FIXME 临时目录
+                $('#preview-img-box').append('<img id="tmp_upload_image" style="border: 1px solid #EBE6DE;" width="200" height="80" src=/static/sharehp/tmp/' + src + ' >');
+
+                // 设置x按钮事件
+                $("#btn-close-preview").bind('click', function () {
+                    attach_id = '';
+                    $('#preview-img-box').children().remove();
+                    //$("#btn-close-preview").css("display", "none");
+                    return false;
+                });
                 // 预览事件
                 $("#preview-img-box").bind({
                     "mouseover": function () {
@@ -21,89 +38,102 @@ $(function () {
                     "mouseout": function () {
                         $("#btn-close-preview").css("display", "none")
                     }
-                })
+                });
             } else {
+                // 图片上传失败处理
+                $('#preview-img-box').children().remove();
+                $('#error-msg').text(result.error_msg).css('display', 'block');
             }
         }
     });
 
-    // 取消预览图片事件
-    $("#btn-close-preview").bind('click', function () {
-        $('#preview-img-box').children('img').remove()
-        $("#btn-close-preview").css("display", "none")
-        return false;
-    });
 
-    // 发帖按钮事件
+    // 设置发帖按钮事件
     $('#add-new-topic').bind('click', function () {
         // 获取发帖的标题&内容
         var title = $('#topic-title').val();
         var content = $('#topic-content').val();
-        if (!content || !title || content.length <= 0 || title.length <= 0) {
-            // FIXME
+        if (!title || title.length <= 0) {
+            setErrorMsg("话题不能为空!");
+            return;
         }
-        // 获取小组ID FIXME
+        if (title.length > 256) {
+            setErrorMsg("话题不能超过256个字符!");
+            return;
+        }
+        if (!content || content.length <= 0) {
+            setErrorMsg("内容不能为空!");
+            return;
+        }
+        if (content.length > 10000) {
+            setErrorMsg("内容不能超过10000个字符!");
+            return;
+        }
+        // 获取小组ID
         var group_id = $("div[id^='group-id']").attr('id').split('-')[2];
-        // 获取图片（可选）
-        var image = '';
-        if ($('#tmp_image').length > 0) {
-            var src = $('#tmp_image').attr('src').split('\/');
-            image = src[src.length - 1];
-        }
         // 提交表单
+        $('#add-new-topic').button('loading');
         $.post('/api/group/' + group_id + '/add_new_topic/',
             {
-                attachment: image,
-                type: 'image', // FIXME
+                attach: attach_id,
+                type: 'image', // TODO video
                 title: title,
-                content: content
+                content: content,
+                has_attach: attach_id == '' ? 'false' : 'true'
             },
             function (result, status) {
                 result = JSON.parse(result);
                 if (result.success == 0) {
                     window.location.href = '/group/' + group_id + '/'
-                } else if (result.success == -1) {
-                    // 标题校验失败
-                    $('#topic-title').before('<span class="text-error">' + result.error_msg + '</span>')
-
-                } else if (result.success == -2) {
-                    // 内容校验失败
-                    $('#topic-content').before('<span class="text-error">' + result.error_msg + '</span>');
+                } else {
+                    setErrorMsg(result.error_msg);
+                    $('#add-new-topic').button('reset');
                 }
             });
     });
 
     // 回帖按钮事件
     $('#topic-comment-save').bind('click', function () {
-        // 获取回复的内容并替换空格和换行符
         var content = $('#topic-comment-content').val();
         if (!content || content.length <= 0) {
-            // FIXME
+            setErrorMsg("内容不能为空!");
+            return;
         }
-        // var reg = new RegExp("\n","g");
-        //content = content.replace(reg, "<br>");
-        // 获取回复帖子的ID FIXME
+        if (content.length > 10000) {
+            setErrorMsg("内容不能超过10000个字符!");
+            return;
+        }
+        // 获取回复帖子的ID
         var topic_id = $("h4[id^='topic-id']").attr('id').split('-')[2];
-        // 获取图片（可选）
-        var image = '';
-        if ($('#tmp_image').length > 0) {
-            var src = $('#tmp_image').attr('src').split('\/');
-            image = src[src.length - 1];
-        }
+        $('#topic-comment-save').button('loading');
         // 提交表单
         $.post('/api/group/topic/' + topic_id + '/add_new_comment/',
             {
-                attachment: image,
-                type: 'image', // FIXME
-                content: content
+                attach: attach_id,
+                type: 'image', // TODO video
+                content: content,
+                has_attach: attach_id == '' ? 'false' : 'true'
             },
             function (result, status) {
                 result = JSON.parse(result);
                 if (result.success == 0) {
                     window.location.reload();
+                } else {
+                    setErrorMsg(result.error_msg);
                 }
+                $('#topic-comment-save').button('reset');
+                /**
+                 $('#comment-success').modal('show');
+                 setTimeout(function () {
+                        $('#comment-success').modal('hide');
+                        window.location.reload();
+                    }, 900)
+                 */
             });
     });
 
+    function setErrorMsg(msg) {
+        $('#error-msg').text(msg).css('display', 'block');
+    }
 });
 

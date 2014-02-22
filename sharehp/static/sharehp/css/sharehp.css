@@ -1,0 +1,541 @@
+
+body {
+    background-image: url("http://sharehp.qiniudn.com/share/bg.gif");
+    font: normal 13px "Hiragino Sans GB", STHeiti, "微软雅黑", "Microsoft YaHei", Arial, Tahoma;
+    color: #4A4A4A;
+    line-height: 20px;
+}
+
+div {
+    display: block;
+}
+
+.jumbotron {
+    padding-top: 55px;
+    padding-bottom: 25px;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 0 30px rgba(0, 0, 0, .075);
+    background: #020031;
+    background: -moz-linear-gradient(45deg, #020031 0%, #6d3353 100%);
+    background: -webkit-gradient(linear, left bottom, right top, color-stop(0%, #020031), color-stop(100%, #6d3353));
+    background: -webkit-linear-gradient(45deg, #020031 0%, #6d3353 100%);
+    background: -o-linear-gradient(45deg, #020031 0%, #6d3353 100%);
+    background: -ms-linear-gradient(45deg, #020031 0%, #6d3353 100%);
+    background: linear-gradient(45deg, #020031 0%, #6d3353 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#020031', endColorstr='#6d3353', GradientType=1);
+    -webkit-box-shadow: inset 0 3px 7px rgba(0, 0, 0, .2), inset 0 -3px 7px rgba(0, 0, 0, .2);
+    -moz-box-shadow: inset 0 3px 7px rgba(0, 0, 0, .2), inset 0 -3px 7px rgba(0, 0, 0, .2);
+    box-shadow: inset 0 3px 7px rgba(0, 0, 0, .2), inset 0 -3px 7px rgba(0, 0, 0, .2);
+}
+
+.subhead {
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.res-comment-item {
+    border-bottom: 1px dashed #EBE6DE;
+}
+
+.create-time {
+    color: #bcbcbc;
+}
+
+.nickname {
+    margin: 0 3px 0 0;
+    font-size: 11px;
+    text-decoration: none;
+    outline: none;
+    color: #b69e88;
+}
+
+a {
+    text-decoration: none;
+    outline: none;
+    color: #9e8c7b;
+}
+
+.detail-res-author {
+    margin-bottom: 8px;
+}
+
+.detail-res-title {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    position: relative;
+}
+
+.detail-res-content {
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.detail-res-footer {
+    margin-top: 12px;
+    line-height: 25px;
+}
+
+.comments-total {
+    padding-top: 10px;
+    border-top: 1px solid #d7cebe;
+}
+
+.nav-res {
+    margin-top: 2px;
+    height: 28px;
+    line-height: 28px;
+    float: right;
+    text-align: center;
+}
+
+.nav-res-last {
+    width: 28px;
+    margin-right: 10px;
+    color: #fff;
+    background: #fd7647;
+    border-radius: 3px;
+}
+
+.nav-res-next {
+    width: 55px;
+    color: #fff;
+    background: #fd7647;
+    border-radius: 3px;
+}
+
+.nav-res a:hover {
+    text-decoration: none;
+    color: #898989;
+    background: #ffa86e;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+textarea {
+    resize: none;
+}
+
+.waterfall-span {
+    width: 210px;
+    margin-left: 20px;
+}
+
+.waterfall-wall {
+    display: block;
+    margin-top: 20px;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+}
+
+.waterfall-title {
+    padding-top: 12px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.waterfall-bottom {
+    background: #F8F8F8;
+    border-top: 1px solid #F2F2F2;
+    padding: 13px 10px;
+    line-height: 18px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    font-size: 12px;
+}
+
+.btn-icon {
+    display: inline-block;
+    border: 1px solid #e8e8e8;
+    margin-right: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-radius: 3px;
+}
+
+.item-content {
+    padding-top: 10px;
+    font-size: 15px;
+    line-height: 23px;
+}
+
+.item-author {
+    padding-bottom: 8px;
+    border-bottom: 1px solid #F2F2F2;
+}
+
+.item-footer {
+    border-top: 1px solid #F2F2F2;
+    margin-top: 10px;
+    padding-top: 10px;
+    line-height: 25px;
+    height: 26px;
+}
+
+.sidebar-wall {
+    display: block;
+    padding-top: 18px;
+    padding-bottom: 15px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin-top: 15px;
+    background-color: #FFFFFF;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/** 上传资源 **/
+.upload-media {
+    position: relative;
+    margin: 10px 0 0 0;
+}
+
+.triangle, .triangle-down {
+    position: relative;
+}
+
+.triangle .tb-background {
+    top: -16px;
+    border-color: transparent transparent #d7d6d6 transparent;
+}
+
+.triangle .triangle-border {
+    position: absolute;
+    overflow: hidden;
+    width: 0;
+    height: 0;
+    border-width: 8px;
+    border-style: dashed dashed solid dashed;
+}
+
+.triangle .tb-border {
+    top: -15px;
+    border-color: transparent transparent #f4f3f3 transparent;
+}
+
+.upload-media-container {
+    background: #f1f1f1;
+    border: 1px solid #e2e1de;
+    padding: 6px 10px 10px;
+    margin-bottom: 15px;
+/ / margin-top : 15 px;
+}
+
+.close-upload-media {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: url('http://sharehp.qiniudn.com/share/icon.png') no-repeat left -930px;
+    right: 6px;
+    top: 6px;
+}
+
+.upload-media-input {
+    width: 100%;
+    margin: 0 auto;
+    text-align: left;
+    padding: 0;
+    color: #666;
+}
+
+.upload-media-input input {
+    background: #fff;
+    width: 480px;
+    padding: 0 3px;
+    height: 24px;
+    line-height: 24px;
+    border: 1px solid #ddd;
+    float: left;
+}
+
+.upload-media-input a:hover.upload-btn {
+    background: #ffbd7c;
+}
+
+.upload-media-input .upload-btn {
+    padding: 0 16px;
+    margin-right: 0;
+    background: #ffb56d;
+    border-color: #f0a767;
+}
+
+/** 模态对话框 **/
+.modal {
+/ / width : 380 px;
+}
+
+/** 登录注册 **/
+.form-signin-register {
+    max-width: 360px;
+    margin: 0 auto 20px;
+    padding: 19px 29px 29px;
+    background-color: #fff;
+    border: 1px solid #e5e5e5;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+    -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.form-signin-register input[type="text"], .form-signin-register input[type="password"] {
+    font-size: 16px;
+    height: auto;
+    margin-bottom: 15px;
+    padding: 7px 9px;
+}
+
+.form-change-password {
+    max-width: 360px;
+    margin: 0 auto 20px;
+    padding: 19px 29px 29px;
+    background-color: #fff;
+}
+
+.form-change-password input[type="password"] {
+    font-size: 16px;
+    height: auto;
+    margin-bottom: 15px;
+    padding: 7px 9px;
+}
+
+#topic-content, #topic-title, #resource-title, #topic-comment-content {
+    font-size: 16px;
+    height: auto;
+    padding: 7px 9px;
+}
+
+#res-comment-content {
+    height: auto;
+    padding: 7px 9px;
+}
+
+#scrollUp {
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: url('http://sharehp.qiniudn.com/share/icon_top.png') center center no-repeat;
+    background-color: #444;
+    width: 30px;
+    height: 30px;
+}
+
+#editor {
+    overflow: scroll;
+    max-height: 300px
+}
+
+a:hover {
+    text-decoration: none;
+    color: #b69e88;
+}
+
+a {
+    text-decoration: none;
+}
+
+.footer {
+    margin-top: 25px;
+    padding-top: 2em;
+    background-color: #333;
+    color: white;
+    padding-bottom: 2em;
+}
+
+.play-icon {
+    background: url("http://sharehp.qiniudn.com/share/icon-play.png") no-repeat;
+    display: block;
+    height: 48px;
+    width: 48px;
+    position: absolute;
+    top: 35px;
+    left: 80px;
+}
+
+.pagination ul > li.active > a {
+    background: #f9863a;
+    color: #fff;
+}
+
+.pagination ul > li > a:hover {
+    background: #ffe3d0;
+    color: rgb(102, 102, 102);
+}
+
+.pagination a {
+    color: rgb(102, 102, 102);
+}
+
+.error {
+    color: #c66;
+}
+
+.form-title {
+    border-bottom: 1px solid #d7cebe;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+}
+
+.nav-res-prev-disabled {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    padding: 0;
+    color: #7b7b7b;
+    background: #e3e3e3;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.nav-res-next-disabled {
+    width: 55px;
+    height: 28px;
+    line-height: 28px;
+    padding: 0;
+    color: #7b7b7b;
+    background: #e3e3e3;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.groups-wall {
+    display: block;
+    margin-top: 15px;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+}
+
+.group-desc {
+    display: inline-block;
+    padding-left: 8px;
+}
+
+.img-left-rounded {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.img-top-rounded {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+
+.background-wall {
+    padding: 15px;
+    display: block;
+    margin-top: 15px;
+    background-color: #FFFFFF;
+    border-radius: 6px;
+}
+
+.btn-close-preview {
+    background: url("http://sharehp.qiniudn.com/share/icon.png") no-repeat scroll left -846px #FD9035;
+    display: none;
+    height: 16px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 16px;
+}
+
+.topic-comment {
+    margin-top: 15px;
+}
+
+.topic-sep {
+    border-bottom: 1px dashed rgb(221, 221, 221);
+    pading-bottom: 2px;
+    marigin-top: 2px;
+}
+
+.text-error {
+    background: #f2dede;
+    font-size: 12px;
+    color: #a42625;
+    line-height: 1;
+}
+
+.btn-url-confirm {
+    border: 1px solid #f0a767;
+    color: #fff;
+    border-radius: 3px;
+    padding: 3px 16px;
+    margin-right: 0;
+    background: #ffb56d;
+}
+
+.btn-url-confirm:hover {
+    background: #fb8b55;
+    border: 1px solid #f1752a;
+    color: #fff;
+}
+
+.upload-media {
+    position: relative;
+    margin: 30px 0 0 0;
+    display: none;
+}
+
+.close-upload-media {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: url('http://sharehp.qiniudn.com/share/icon.png') no-repeat left -930px;
+    right: 6px;
+    top: 6px;
+}
+
+.nav-pills > .active > a, .nav-pills > .active > a:hover, .nav-pills > .active > a:focus {
+    color: #fff;
+    background-color: #fd7647;
+}
+
+.topic-name a:visited {
+    color: #999;
+    text-decoration: none;
+}
+
+.topic-name a:link {
+    color: #4A4A4A;
+    text-decoration: none;
+}
+
+a {
+    cursor: pointer;
+}
+
+.word-break {
+    word-break: break-all
+}
+
+.highlight {
+    color: rgb(175, 175, 175);
+    padding-top: 3px;
+}
+
+.highlight {
+    color: rgb(175, 175, 175);
+    padding-top: 3px;
+    font-size: 12px;
+}
+
+.user-title {
+    margin: 0 0 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgb(238, 238, 238);
+}
+
+.user-profile {
+    margin-bottom: 20px;
+    padding: 10px 0 20px;
+    border-bottom: 1px solid rgb(238, 238, 238);
+    line-height: 1.5;
+    color: rgb(136, 136, 136);
+}
