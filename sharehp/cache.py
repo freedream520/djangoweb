@@ -43,6 +43,16 @@ def _hgetall(key):
     return _redisIns.hgetall(key)
 
 
+# set type
+def _sadd(key, values):
+    return _redisIns.sadd(key, values)
+
+
+# list type
+def _lpush(key, values):
+    return _redisIns.lpush(key, values)
+
+
 # if key not exist, return empty list []
 def _lrange(key, start, end):
     return _redisIns.lrange(key, start, end)
@@ -143,7 +153,7 @@ def get_user_naa(user_id):
             return user_info.get('nickname', ''), json.loads(avatar_info)
 
 
-# 获取小组列表信息
+# 获取小组列表信息 FIXME
 def get_group_list():
     key = 'group-list'
     group_list = _lrange(key, 0, -1)  # all group
@@ -155,10 +165,19 @@ def get_group_list():
                 'id': group.id,
                 'create_date': group.gmt_create.strftime('%Y-%m-%d'),
                 'group_name': group.group_name,
-                'group_desc': group.group_desc
+                'group_desc': _relength(group.group_desc, 13),
+                'group_ori_desc': group.group_desc,
+                'avatar': json.loads(group.avatar)
             }
             group_list.append(g)
     return group_list
+
+
+def _relength(str, length):
+    retval = str
+    if str and len(str) > length:  #  TODO 优化
+        retval = str[:length] + '...'
+    return retval
 
 
 # 获取某个小组信息
@@ -176,12 +195,16 @@ def get_group_info(group_id):
                 'id': group.id,
                 'create_date': group.gmt_create.strftime('%Y-%m-%d'),
                 'group_name': group.group_name,
-                'group_desc': group.group_desc
+                'group_desc': group.group_desc,
+                'avatar': group.avatar
             }
             _hmset(key, group_info)
         except Group.DoesNotExist, e:
             # TODO log eror
             group_info = {}
+
+    if group_info:
+        group_info['avatar']=json.loads(group_info['avatar'])
     return group_info
 
 
@@ -223,10 +246,7 @@ def get_last_resource_id():
 # 设置最新的资源ID
 def set_last_resource_id(res_id):
     key = 'last-resource-id'
-
-    if not res_id:
-        raise IllegalArgumentError("res_id can't be None!")
-    if common.safe_int(res_id, 0):
+    if not res_id or common.safe_int(res_id, 0):  # FIXME
         _del(key)
     return _set(key, res_id, 5 * 60)  # cache 5min
 
@@ -247,6 +267,9 @@ def get_video_info(id):
     return _hgetall(key)
 
 
+def resource_vote(res_id, who):
+    if not res_id or not who:
+        return  # keep silent
 
-
+    return _sadd(res_id, who)  # if duplicate, return False
 
