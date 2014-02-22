@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import patterns , url
 from djangoweb.sharehp import views
+from djangoweb.sharehp import bops_views
 from djangoweb.sharehp.views import require_login
 
 # Uncomment the next two lines to enable the admin:
@@ -14,6 +15,8 @@ urlpatterns = patterns('',
     url(r'^detail/(video|image)/(\d+)/$', views.detail),
     url(r'^detail/(video|image)/(\d+)/(next|prev)/$', views.another),
 
+    url(r'^new_resource/$', require_login(views.new_resource)),
+
     url(r'^register/$', views.register),
     url(r'^login/$', views.login),
     url(r'^loginout/$', views.loginout),
@@ -24,10 +27,23 @@ urlpatterns = patterns('',
     url(r'^group/(\d+)/new_topic/$', require_login(views.new_topic)),
     url(r'^group/topic/(\d+)/$', views.group_topic),
 
+    url(r'^account/change_avatar/$', require_login(views.change_avatar)),
+    url(r'^account/change_password/$', require_login(views.change_password)),
+
+    url(r'user/(\d+)', views.user_info),
+
+    url(r'^api/add_new_resource/$', views.add_new_resource),
     url(r'^api/group/(\d+)/add_new_topic/$', views.add_new_topic),
-    url(r'^api/group/topic/(\d+)/add_new_comment/$', views.add_new_comment),
+    url(r'^api/group/topic/(\d+)/add_new_comment/$', views.add_topic_comment),
     url(r'^api/upload_image/$', views.upload_image),
-    url(r'^api/comment/$', views.comment),
+    url(r'^api/upload_video/$', views.upload_video),
+    url(r'^api/detail/(\d+)/add_new_comment/$', views.add_resource_comment),
+
+
+
+    url(r'^bops/tag/$', bops_views.classify),
+    url(r'^bops/detail/(\d+)/$', bops_views.detail),
+    url(r'^bops/resource/(pass|reject)/$', bops_views.process),
 )
 
 
