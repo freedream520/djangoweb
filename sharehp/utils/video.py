@@ -27,7 +27,7 @@ def video_info(video_url):
 
 
 def _56_vid(video_url):
-    match = re.search(r'.+(vid-|v_)(.+).html$', video_url)
+    match = re.search(r'.+(vid-|v_)(.+).html.*$', video_url)
     if match:
         return match.group(2)
 
