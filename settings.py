@@ -45,7 +45,7 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = '/home/diaocow/workspace/PycharmProjects/djangoweb//sharehp/static/sharehp/tmp/'
+MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -127,6 +127,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'djangoweb.sharehp',
 )
+
+WSGI_APPLICATION = "djangoweb.wsgi.application" 
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
