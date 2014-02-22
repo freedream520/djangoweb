@@ -7,7 +7,6 @@ from django.db.models import Max
 from django.template import RequestContext
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-from django.conf import settings
 from datetime import datetime
 from exception import QiniuUploadFileError
 from models import Resource
@@ -34,7 +33,7 @@ def classify(request, tag):
     page = _get_page(request)
     offset = (int(page) - 1) * page_size
 
-    rl = Resource.objects.filter(type=tag, status='enabled')[offset: offset + page_size]
+    rl = Resource.objects.filter(type=tag, status='enabled').order_by('-gmt_create')[offset: offset + page_size]
     res_count = Resource.objects.filter(type=tag, status='enabled').count()
     pages = int(math.ceil(res_count / (page_size * 1.0)))
 
@@ -54,12 +53,13 @@ def classify(request, tag):
         res_list.append(res)
     # side bar
     group_list = cache.get_group_list()
-
+    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
     context = RequestContext(request, {'tag': tag,
                                        'resList': res_list,
                                        'groups': group_list,
                                        'curPage': page,
-                                       'pages': pages})
+                                       'pages': pages,
+                                       'pageUrl': pageUrl})
     return render_to_response('tag.htm', context)
 
 
@@ -109,7 +109,7 @@ def detail(request, tag, res_id):
     }
     # 评论信息
     comment_list = []
-    cl = Resource_Comment.objects.filter(res_id=res_id, status='enabled')
+    cl = Resource_Comment.objects.filter(res_id=res_id, status='enabled').order_by('-gmt_create')
     for comment in cl:
         comment_list.append({
             'comment_id': comment.id,
@@ -152,13 +152,7 @@ def new_resource(request):
 
 # 群组列表页面
 def groups(request):
-    groups = Group.objects.all()
-    for group in groups:
-        group_desc = group.group_desc
-        # 群组描述过长
-        if group_desc and len(group_desc) > 13:  #  TODO 优化
-            group.group_desc = group_desc[:13] + '...'
-
+    groups = cache.get_group_list()
     context = RequestContext(request, {'groups': groups})
     return render_to_response('groups.htm', context)
 
@@ -196,8 +190,13 @@ def group(request, group_id, order):
     group = cache.get_group_info(group_id)
     topic_count = Group_Topic.objects.filter(group_id=group_id, status='enabled').count()
     pages = int(math.ceil(topic_count / (page_size * 1.0)))
+    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
 
-    context = RequestContext(request, {'group': group, 'topics': topics, 'curPage': page, 'pages': pages})
+    context = RequestContext(request, {'group': group,
+                                       'topics': topics,
+                                       'curPage': page,
+                                       'pages': pages,
+                                       'pageUrl': pageUrl})
     return render_to_response('group.htm', context)
 
 
@@ -217,26 +216,28 @@ def group_topic(request, topic_id):
 
     tcs = Topic_Comment.objects.filter(topic_id=topic_id)[offset: offset + page_size]
     topic_comments = []
+    floor_base = page_size * (page - 1)
     for floor, tc in enumerate(tcs):
-        content = json.loads(tc.content)
         topic_comment = {
-            'floor': floor + 1,
+            'floor': floor + 1 + floor_base,  # FIXME
             'create_date': tc.gmt_create.strftime('%Y-%m-%d %H:%M:%S'),
             'user_id': tc.user_id,
             'nickname': cache.get_user_nickname(tc.user_id),
             'avatar': cache.get_user_avatar(tc.user_id),
-            'text': content['text'],
-            'attachment': content['attachment'],
+            'content': tc.content,
+            'attachment': json.loads(tc.attachment),
         }
         topic_comments.append(topic_comment)
     topic = cache.get_topic_info(topic_id)
     group = cache.get_group_info_by_topicid(topic['id'])
+    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
 
     context = RequestContext(request, {'group': group,
                                        'topic': topic,
                                        'topicComments': topic_comments,
                                        'curPage': page,
-                                       'pages': pages})
+                                       'pages': pages,
+                                       'pageUrl': pageUrl})
     return render_to_response('group_topic.htm', context)
 
 
@@ -254,7 +255,7 @@ def register(request):
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
             register_date = datetime.now()
-            default_avatar =  {
+            default_avatar = {
                 'big': 'user/avater/default.big',
                 'mid': 'user/avater/default.mid',
                 'small': 'user/avater/default.small'
@@ -388,7 +389,7 @@ def change_avatar(request):
             image.qiniu_upload(crop_result['mid']['path'], avatar_mid_url)
             avatar_small_url = 'user/avater/' + crop_result['small']['name']
             image.qiniu_upload(crop_result['small']['path'], avatar_small_url)
-        except QiniuUploadFileError: # FIXME
+        except QiniuUploadFileError:  # FIXME
             # TODO Log error
             return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
@@ -399,7 +400,7 @@ def change_avatar(request):
         }
         User.objects.filter(id=_get_current_userid(request)).update(gmt_modify=datetime.now(),
                                                                     avatar=json.dumps(avatar_info))
-        cache.del_user_info(_get_current_userid(request)) # important!
+        cache.del_user_info(_get_current_userid(request))  # important!
 
         return HttpResponse(json.dumps({'success': 0, 'data': {'src': avatar_big_url}}))
 
@@ -409,89 +410,57 @@ def change_avatar(request):
         return render_to_response('change_avatar.htm', context)
 
 
+# 查看用户信息(TODO develop)
+def user_info(request, user_id):
+    if not User.objects.filter(id=user_id).exists():
+        return render_to_response('miss/user.htm', RequestContext(request))
+    user = {}
+    user['nickname'], user['avatar'] = cache.get_user_naa(user_id)
+    return render_to_response('user.htm', RequestContext(request, {'user_info': user}))
+
+
 #-------------------------------------------
 # API 接口, 供前端JS调用
 # 调用成功： {'success': 0, 'data': {...}}
 # 调用失败： {'success': -1, error_msg: {...}}
 #-------------------------------------------
 
-def _deal_image_resource(image_name):
-    attach_info = {
-        'name': image_name,
-        'path': settings.MEDIA_ROOT + image_name,
-        'size': image.get_pic_size(settings.MEDIA_ROOT + image_name)
-    }
-    # 生成缩略图图&上传
-    thumbnail_info = image.thumbnail_img(attach_info['name'], settings.MEDIA_ROOT)
-    thumbnail_url = 'resource/thumbnail/' + thumbnail_info['name']
-    image.qiniu_upload(thumbnail_info['path'], thumbnail_url)
 
-    # 上传原图
-    attach_url = 'resource/normal/' + attach_info['name']
-    image.qiniu_upload(attach_info['path'], attach_url)
-
-    content = json.dumps({
-        'size': attach_info['size'],  # only image_used
-        'url': attach_url
-    })
-    thumbnail = json.dumps({
-        'size': thumbnail_info['size'],
-        'url': thumbnail_url
-    })
-    return (thumbnail, content)
-
-
-def _deal_video_resource(video_info):
-    img_info = image.save_img(video_info['img'], settings.MEDIA_ROOT)
-    attach_info = {
-        'name': img_info['name'],
-        'path': img_info['path'],
-        'size': img_info['size']
-    }
-    # 生成缩略图图&上传
-    thumbnail_info = image.thumbnail_img(attach_info['name'], settings.MEDIA_ROOT)
-    thumbnail_url = '/resource/thumbnail/' + thumbnail_info['name']
-    image.qiniu_upload(thumbnail_info['path'], thumbnail_url)
-
-    content = json.dumps({
-        'size': '',  #  vidoe not used
-        'url': video_info['url']
-    })
-    thumbnail = json.dumps({
-        'size': thumbnail_info['size'],
-        'url': thumbnail_url
-    })
-    return (thumbnail, content)
-
-
-# FIXME
+# 发布新资源
 def add_new_resource(request):
     title = request.POST.get('title', '').strip()
     type = request.POST.get('type')
+    # to image: filename, to video: id
     attach = request.POST.get('attach', '').strip()
 
     # check params
     if not _check_login(request):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
     if len(title) <= 0:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源内容不能为空!"}))
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源标题不能为空!"}))
+    if len(title) >= 1000:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源标题过长，只能1000个字符!"}))
+    if len(attach) <= 0:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请上传一个视频或者图片!"}))
     if type not in ('image', 'video'):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源类型不支持!"}))
-    if len(attach) <= 0:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "资源无效!"}))
-
-    if type == 'image' and not default_storage.exists(settings.MEDIA_ROOT + attach):
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "图片丢失，请重新上传!"}))
+    if type == 'image' and not default_storage.exists(os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), attach)):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器图片丢失，请重新上传!"}))
     if type == 'video':
-        video_info = cache.get_tmp_video_info(attach)
+        video_info = cache.get_video_info(attach)
         if not video_info:
-            return HttpResponse(json.dumps({'success': -1, 'error_msg': "视频丢失，请重新上传!"}))
+            return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器视频丢失，请重新上传!"}))
 
     # build filed data
-    if type == 'image':
-        thumbnail, content = _deal_image_resource(attach)
-    else:
-        thumbnail, content = _deal_video_resource(video_info)
+    try:
+        if type == 'image':
+            thumbnail, content = _deal_image_resource(attach)
+        else:
+            thumbnail, content = _deal_video_resource(video_info)
+
+    except QiniuUploadFileError:
+        # TODO log error:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
     # 保存资源
     current_date = datetime.now()
@@ -501,7 +470,6 @@ def add_new_resource(request):
         user_id=_get_current_userid(request),
         title=title,
         type=type,
-        nums=1,  # Depreated
         thumbnail=thumbnail,
         content=content,
         good=0,
@@ -510,7 +478,8 @@ def add_new_resource(request):
         status='enabled'
     )
     resource.save()
-    return HttpResponse(json.dumps({'success': 0, 'error_msg': ""}))
+    cache.set_last_resource_id(resource.id)  # important
+    return HttpResponse(json.dumps({'success': 0, 'data': {}}))
 
 
 # 对资源进行评论
@@ -523,8 +492,8 @@ def add_resource_comment(request, res_id):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "你评论的资源已经被删除，请刷新页面!"}))
     if not content:
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "评论内容不能为空!"}))
-    if len(content) >= 10240:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "评论内容过长，只能10240个字符!"}))
+    if len(content) >= 1000:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "评论内容过长，只能1000个字符!"}))
 
     # 插入资源评论 FIXME transcation
     current_time = datetime.now()
@@ -563,8 +532,8 @@ def add_new_topic(request, group_id):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题过长，只能256个字符!"}))
     if not topic_content:
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题内容不能为空!"}))
-    if len(topic_content) >= 10240:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题内容过长，只能10240个字符!"}))
+    if len(topic_content) >= 10000:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "话题内容过长，只能10000个字符!"}))
     if has_attach == 'true' and not default_storage.exists(attach_path):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器图片丢失，请重新上传!"}))
 
@@ -585,21 +554,19 @@ def add_new_topic(request, group_id):
         group_id=group_id,
         user_id=_get_current_userid(request),  # won't be None
         topic_name=topic_title,
-        content='',  # unused field FIXME
         comments=0,
         status='enabled'
     )
     new_topic.save()
+
     # 话题内容作为评论保存
     topic_comment = Topic_Comment(
         gmt_create=current_date,
         gmt_modify=current_date,
         topic_id=new_topic.id,
         user_id=_get_current_userid(request),  # won't be None
-        content=json.dumps({
-            'attachment': attachment,
-            'text': topic_content
-        }),
+        content=topic_content,
+        attachment=json.dumps(attachment),
         status='enabled'
     )
     topic_comment.save()
@@ -614,7 +581,7 @@ def add_topic_comment(request, topic_id):
     attach_name = request.POST.get('attach', '').strip()
     attach_type = request.POST.get('type', '').strip()
     attach_path = os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), attach_name)
-    attach_url = 'topic/' + attach_name  # FIXME
+    attach_url = 'topic/' + attach_name
 
     if not Group_Topic.objects.filter(id=topic_id).exists():
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "对不起你回复的话题已经不存在!"}))
@@ -622,8 +589,8 @@ def add_topic_comment(request, topic_id):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
     if not len(content.strip()):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "回复内容不能为空!"}))
-    if len(content) >= 10240:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "回复内容过长，只能10240个字符!"}))
+    if len(content) >= 10000:
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "回复内容过长，只能10000个字符!"}))
     if has_attach == 'true' and not default_storage.exists(attach_path):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器图片丢失，请重新上传!"}))
 
@@ -643,10 +610,8 @@ def add_topic_comment(request, topic_id):
         gmt_modify=current_date,
         topic_id=topic_id,
         user_id=_get_current_userid(request),  # won't be None
-        content=json.dumps({
-            'attachment': attachment,
-            'text': content
-        }),
+        content=content,
+        attachment=json.dumps(attachment),
         status='enabled'
     )
     topic_comment.save()
@@ -683,16 +648,16 @@ def upload_video(request):
     if not _check_login(request):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请登录后操作!"}))
     if len(video_url.strip()) <= 0:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请输入一个视频url!"}))
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请输入一个视频地址!"}))
     if not video.support(video_url):
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "对不起，你输入的视频链接暂时不支持!"}))
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "对不起，你输入的视频地址暂时不支持!"}))
     # 获取视频信息
     video_info = video.video_info(video_url)
     if not video_info['success']:
-        return HttpResponse(json.dumps({'success': -1, 'error_msg': "无法获取视频信息，请确认视频链接的正确性!"}))
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "无法获取视频信息，请确认视频地址的正确性!"}))
 
     data = {
-        'id': common.unique_attach_id() ,
+        'id': common.unique_attach_id(),
         'bimg': video_info['bimg'],
         'src': video_info['img'],
         'title': video_info['title'],
@@ -753,7 +718,10 @@ def _get_current_userid(request):
 
 # 获取当前分页，默认返回1
 def _get_page(request):
-    return common.safe_int(request.GET.get('page', 1), 1)
+    page = common.safe_int(request.GET.get('page', 1), 1)
+    if page <= 0:
+        page = 1
+    return page
 
 
 # 生成topic_comment表的content字段(json)中attachment信息
@@ -787,10 +755,64 @@ def _last_resource_id(res_id):
     if not last_res_id:
         last_res_id = Resource.objects.filter(status='enabled').aggregate(Max('id'))['id__max']
         cache.set_last_resource_id(last_res_id)
-    return last_res_id == res_id
+    return str(last_res_id) == str(res_id)  # FIXME
 
 
 def _first_resource_id(res_id):
     return res_id == 1  # id为1的这条资源永远不会删除
 
+
+def _deal_image_resource(image_name):
+    image_path = os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), image_name)
+    attach_info = {
+        'name': image_name,
+        'path': image_path,
+        'size': image.get_image_size(image_path)
+    }
+    # 生成缩略图图&上传
+    thumbnail_info = image.thumbnail_img(attach_info['name'], config.get_config('SHAREHP_UPLOAD_DIR'))
+    thumbnail_url = 'resource/thumbnail/' + thumbnail_info['name']
+    image.qiniu_upload(thumbnail_info['path'], thumbnail_url)
+
+    # 上传原图
+    attach_url = 'resource/normal/' + attach_info['name']
+    image.qiniu_upload(attach_info['path'], attach_url)
+
+    content = json.dumps({
+        'size': attach_info['size'],  # only image_used
+        'url': attach_url
+    })
+    thumbnail = json.dumps({
+        'size': thumbnail_info['size'],
+        'url': thumbnail_url
+    })
+    return (thumbnail, content)
+
+
+def _deal_video_resource(video_info):
+    # 保存视频截图
+    img_info = image.save_img(video_info['bimg'], config.get_config('SHAREHP_UPLOAD_DIR'))
+    attach_info = {
+        'name': img_info['name'],
+        'path': img_info['path'],
+        'size': img_info['size']
+    }
+    # 生成缩略图图&上传
+    thumbnail_info = image.thumbnail_img(attach_info['name'], config.get_config('SHAREHP_UPLOAD_DIR'))
+    thumbnail_url = 'resource/thumbnail/' + thumbnail_info['name']
+    image.qiniu_upload(thumbnail_info['path'], thumbnail_url)
+
+    content = json.dumps({
+        'size': '',  #  vidoe not used
+        'url': video_info['swf']
+    })
+    thumbnail = json.dumps({
+        'size': thumbnail_info['size'],
+        'url': thumbnail_url
+    })
+    return (thumbnail, content)
+
+
+def _get_page_url(server_host, path):
+    return ''.join([server_host, path, '?page='])
 
