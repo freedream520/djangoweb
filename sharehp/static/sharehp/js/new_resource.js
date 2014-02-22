@@ -92,7 +92,7 @@ $(function () {
 
         $("#url-input-box").css("display", "none");
         $('#preview-img-box').children().remove();
-        $('#preview-img-box').append('<img id="loading-image" src="/static/sharehp/img/loading.gif">');
+        $('#preview-img-box').append('<img id="loading-image" src="http://sharehp.qiniudn.com/share/loading.gif">');
         $.post('/api/upload_video/',
             {
                 url: video_url
