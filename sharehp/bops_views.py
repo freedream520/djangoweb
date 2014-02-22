@@ -1,29 +1,30 @@
 # -*- coding: utf-8 -*-
+
 from django.shortcuts import render_to_response
-from django.forms.util import ErrorList
-from django.http import HttpResponse
 from django.http import HttpResponseRedirect
-from django.http import Http404
-from django.db.models import Max
 from django.template import RequestContext
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.conf import settings
-from datetime import datetime
 from models import Spide_Resource
 from models import Resource
+from datetime import datetime
+from utils import image
 from utils import prettydate
+import exceptions
 import json
 import math
-import image
-import exceptions
+import cache
 
 
+#==========================================================
+# 后台系统 TODO 剥离
+#==========================================================
+
+# 分页显示待审核的资源
 def classify(request):
     page_size = 10
     page = _get_page(request)
     offset = (int(page) - 1) * page_size
 
+    # status == 'process' 待审核
     rl = Spide_Resource.objects.filter(status='process').order_by('-gmt_create')[offset: offset + page_size]
     res_count = Spide_Resource.objects.filter(status='process').count()
     pages = int(math.ceil(res_count / (page_size * 1.0)))
@@ -33,10 +34,10 @@ def classify(request):
         content = json.loads(r.content)
         res = {
             'id': r.id,
-            # 'date': prettydate.convert(r.gmt_create),
+            'create-date': prettydate.convert(r.gmt_create),
             'title': r.title,
             'type': r.type,
-            'thumbnail': content['name'],
+            'content': content
         }
         res_list.append(res)
 
@@ -44,6 +45,7 @@ def classify(request):
     return render_to_response('bops/tag.htm', context)
 
 
+# 资源详情
 def detail(request, res_id):
     # 资源信息
     r = Spide_Resource.objects.get(id=res_id)
@@ -57,7 +59,7 @@ def detail(request, res_id):
     context = RequestContext(request, {'res': res})
     return render_to_response('bops/detail.htm', context)
 
-
+# 处理资源（pass or reject）
 def process(request, result):
     if result == 'reject':
         res_id = request.POST.get('resid')
@@ -70,28 +72,30 @@ def process(request, result):
         type = r.type
         title = r.title
         content = json.loads(r.content)
-        name = content['name']
+
+        normal_name = content['normal_name']
         normal_path = content['normal_path']
+        thumbnail_name = content['thumbnail_name']
         thumbnail_path = content['thumbnail_path']
-        url = content.get('url', '')
+        url = content.get('url', '') # only video resource has this property
 
         if type == "image":
-            thumbnail_url = 'resource/thumbnail/' + name
+            thumbnail_url = 'resource/thumbnail/' + thumbnail_name
             image.qiniu_upload(thumbnail_path, thumbnail_url)
 
-            normal_url = 'resource/normal/' + name
+            normal_url = 'resource/normal/' + normal_name
             image.qiniu_upload(normal_path, normal_url)
 
             content = json.dumps({
-                'size': image.get_pic_size(normal_path),  # only image_used
+                'size': image.get_image_size(normal_path),  # only image_used
                 'url': normal_url
             })
             thumbnail = json.dumps({
-                'size': image.get_pic_size(thumbnail_path),
+                'size': image.get_image_size(thumbnail_path),
                 'url': thumbnail_url
             })
         else:
-            thumbnail_url = 'resource/thumbnail/' + name
+            thumbnail_url = 'resource/thumbnail/' + thumbnail_name
             image.qiniu_upload(thumbnail_path, thumbnail_url)
 
             content = json.dumps({
@@ -99,7 +103,7 @@ def process(request, result):
                 'url': url
             })
             thumbnail = json.dumps({
-                'size': image.get_pic_size(thumbnail_path),
+                'size': image.get_image_size(thumbnail_path),
                 'url': thumbnail_url
             })
 
@@ -108,10 +112,9 @@ def process(request, result):
         resource = Resource(
             gmt_create=current_date,
             gmt_modify=current_date,
-            user_id=2,
+            user_id=2, # FIXME
             title=title,
             type=type,
-            nums=1, # Depreated
             thumbnail=thumbnail,
             content=content,
             good=0,
@@ -120,6 +123,8 @@ def process(request, result):
             status='enabled'
         )
         resource.save()
+        cache.set_last_resource_id(resource.id)
+
 
     # upload
     return HttpResponseRedirect('/bops/tag/')
