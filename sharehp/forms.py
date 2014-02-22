@@ -7,8 +7,12 @@ from utils import common
 class RegisterForm(forms.Form):
     email = forms.EmailField(max_length=128,
                              error_messages={'required': u'请输入邮箱', 'invalid': u'邮箱格式不正确', 'max_length': u'邮箱太长了哎'})
-    nickname = forms.CharField(max_length=16, error_messages={'required': u'请输入昵称', 'max_length': u'昵称太长了哎'})
-    password = forms.CharField(max_length=16, error_messages={'required': u'请输入密码', 'max_length': u'密码太长了哎'})
+    nickname = forms.CharField(min_length=4, max_length=16,
+                               error_messages={'required': u'请输入昵称', 'min_length': u'昵称长度太短了（至少四个字符）',
+                                               'max_length': u'昵称太长了哎'})
+    password = forms.CharField(min_length=6, max_length=16,
+                               error_messages={'required': u'请输入密码', 'min_length': u'密码长度太短了（至少六位）',
+                                               'max_length': u'密码太长了哎'})
 
     def clean_email(self):
         email = self.cleaned_data['email'].strip()
@@ -24,9 +28,11 @@ class RegisterForm(forms.Form):
             raise forms.ValidationError(u'昵称已经被占用, 换一个吧！')
         return nickname
 
+
 # 登录表单
 class LoginForm(forms.Form):
-    email = forms.CharField(max_length=128, error_messages={'required': u'请输入邮箱', 'max_length': u'邮箱太长了哎'})
+    email = forms.EmailField(max_length=128,
+                             error_messages={'required': u'请输入邮箱', 'invalid': u'邮箱格式不正确', 'max_length': u'邮箱太长了哎'})
     password = forms.CharField(max_length=16, error_messages={'required': u'请输入密码', 'max_length': u'密码太长了哎'})
 
     def clean_email(self):
@@ -38,13 +44,15 @@ class LoginForm(forms.Form):
 
     def clean(self):
         cleaned_data = self.cleaned_data
-        email = cleaned_data.get("email").strip()
-        password = common.encode_password(cleaned_data.get("password").strip())
+        email = cleaned_data.get("email", '')
+        password = cleaned_data.get("password", '')
         if password and email:
-            is_exist = User.objects.filter(email=email, password=password).exists()
+            is_exist = User.objects.filter(email=email.strip(),
+                                           password=common.encode_password(password).strip()).exists()
             if not is_exist:
                 raise forms.ValidationError(u"密码错误！")
         return cleaned_data
+
 
 # 修改密码
 class ChangePasswordForm(forms.Form):
