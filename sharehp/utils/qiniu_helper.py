@@ -2,8 +2,8 @@ import qiniu.rs
 import qiniu.conf
 import qiniu.io
 import config
-from ..exception import ConfigArgumentError
-from ..exception import QiniuUploadFileError
+from sharehp.exception import ConfigArgumentError
+from sharehp.exception import QiniuUploadFileError
 
 _ACCESS_KEY = config.get_config("QINIU_ACCESS_KEY")
 _SECRET_KEY = config.get_config("QINIU_SECRET_KEY")
@@ -27,3 +27,5 @@ def upload(filepath, key):
     else:
         if err is not None:
             raise QiniuUploadFileError(err)
+
+
