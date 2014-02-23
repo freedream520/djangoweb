@@ -5,7 +5,8 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>不正常人类研究中心</title>
-    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"
+          media="screen">
     <link href="/static/sharehp/css/sharehp.css" rel="stylesheet" media="screen">
 </head>
 <body>
@@ -15,7 +16,7 @@
     <div class="row">
         <!-- 左边资源 -->
         <div class="span8">
-            <div class="background-wall">
+            <div class="background-wall clearfix">
                 <!-- 作者-->
                 <div class="detail-res-author">
                     <a href="#"><img class="img-circle" width="36" height="36"
@@ -59,6 +60,18 @@
                                    type="application/x-shockwave-flash" src="{{ res.content.url }}">
                         </object>
                     {% endifequal %}
+                </div>
+                <div class="detail-res-footer">
+                    <!-- JiaThis Button BEGIN -->
+                    <div class="jiathis_style_24x24 pull-right">
+                        <a class="jiathis_button_tsina"></a>
+                        <a class="jiathis_button_weixin"></a>
+                        <a class="jiathis_button_renren"></a>
+                        <a class="jiathis_button_qzone"></a>
+                        <a class="jiathis_button_tqq"></a>
+                    </div>
+                    <script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
+                    <!-- JiaThis Button END -->
                 </div>
             </div>
             <br>
@@ -127,6 +140,7 @@
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 <script src="/static/sharehp/js/detail.js"></script>
+<script src="http://v3.jiathis.com/code/jia.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>
 
