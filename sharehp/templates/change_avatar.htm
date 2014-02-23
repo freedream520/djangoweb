@@ -4,7 +4,8 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
     <title>不正常人类研究中心</title>
-    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"
+          media="screen">
     <link href="/static/sharehp/css/sharehp.css" rel="stylesheet">
     <link href="/static/sharehp/css/jquery.fileupload.css" rel="stylesheet">
     <link href="/static/sharehp/css/jquery.Jcrop.css" rel="stylesheet" type="text/css"/>
@@ -22,6 +23,10 @@
                         <span>上传新头像</span>
                         <input id="fileupload" type="file" name="file" data-url="/api/upload_image/" multiple>
                     </span>
+
+                    <div id="error-msg" class="alert alert-error fade in"
+                         style="display: none; padding: 2px 35px 2px 8px; margin-bottom: 12px;">
+                    </div>
 
                     <div id="crop-avatar" style="margin-top: 25px">
                         <img class="img-rounded" src="{{ avatar.big|static_url }}">
@@ -51,7 +56,7 @@
     <br>
     <br>
 </div>
-<script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://cdn.staticfile.org/jquery/1.7.2/jquery.min.js"></script>
 <script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="/static/sharehp/js/upload/vendor/jquery.ui.widget.js"></script>
 <script src="/static/sharehp/js/upload/jquery.iframe-transport.js"></script>
@@ -146,12 +151,15 @@
                                         var src = result.data.src;
                                         $('#upload-avatar').html(change_avatar_success(src));
 
+                                    } else {
+                                        setErrorMsg(result.error_msg);
                                     }
                                     $('#submit-avatar').button('reset');
                                 });
                     });
                     $('#crop-avatar').css('display', 'block');
                 } else {
+                    setErrorMsg(result.error_msg);
                 }
             }
         });
@@ -172,6 +180,10 @@
 
     function change_avatar_success(image_src) {
         return '<div class="alert alert-success"><h5>修改头像成功!</h5></div>'
+    }
+
+    function setErrorMsg(msg) {
+        $('#error-msg').text(msg).css('display', 'block');
     }
 </script>
 </body>
