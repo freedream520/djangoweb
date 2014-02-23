@@ -2,6 +2,7 @@ import qiniu.rs
 import qiniu.conf
 import qiniu.io
 import config
+import logging
 from ..exception import ConfigArgumentError
 from ..exception import QiniuUploadFileError
 
@@ -18,14 +19,17 @@ qiniu.conf.SECRET_KEY = _SECRET_KEY
 policy = qiniu.rs.PutPolicy(_STATIC_NAME)
 uptoken = policy.token()
 
+logger = logging.getLogger('sharehp')
 
 def upload(filepath, key):
     try:
         ret, err = qiniu.io.put_file(uptoken, key, filepath)
-    except Exception, err: # catch all exception TODO log
-        raise QiniuUploadFileError(err)
+    except Exception, error: # catch all exception
+        logger.exception('Fail to upload image to Qiniu!')
+        raise QiniuUploadFileError(error)
     else:
         if err is not None:
+            logger.error('Fail to upload image to Qiniu: ' + str(err))
             raise QiniuUploadFileError(err)
 
 
