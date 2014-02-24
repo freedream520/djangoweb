@@ -7,7 +7,7 @@ $(function () {
             // 清空之前所有预览信息
             $('#preview-img-box').children().remove();
             // 显示loading图片
-            $('#preview-img-box').append('<img id="loading-image" style="border: 1px solid #EBE6DE;" src="http://sharehp.qiniudn.com/share/loading.gif">');
+            $('#preview-img-box').append('<img id="loading-image" src="http://sharehp.qiniudn.com/share/loading.gif">');
             data.submit();
         },
         done: function (e, result) {
@@ -71,8 +71,12 @@ $(function () {
         }
         // 获取小组ID
         var group_id = $("div[id^='group-id']").attr('id').split('-')[2];
-        // 提交表单
+
+        // loading status
         $('#add-new-topic').button('loading');
+        $('#submit-loading').css("display", "inline");
+
+        // 提交表单
         $.post('/api/group/' + group_id + '/add_new_topic/',
             {
                 attach: attach_id,
@@ -87,8 +91,14 @@ $(function () {
                     window.location.href = '/group/' + group_id + '/'
                 } else {
                     setErrorMsg(result.error_msg);
-                    $('#add-new-topic').button('reset');
                 }
+
+            }).fail(function () {
+                setErrorMsg('尼码， 服务器出现异常了，管理员赶紧过来看看！');
+            }).always(function () {
+                // reset status
+                $('#add-new-topic').button('reset');
+                $('#submit-loading').css("display", "none");
             });
     });
 
@@ -105,7 +115,11 @@ $(function () {
         }
         // 获取回复帖子的ID
         var topic_id = $("h4[id^='topic-id']").attr('id').split('-')[2];
+
+        // loading status
         $('#topic-comment-save').button('loading');
+        $('#submit-loading').css("display", "inline");
+
         // 提交表单
         $.post('/api/group/topic/' + topic_id + '/add_new_comment/',
             {
@@ -121,7 +135,6 @@ $(function () {
                 } else {
                     setErrorMsg(result.error_msg);
                 }
-                $('#topic-comment-save').button('reset');
                 /**
                  $('#comment-success').modal('show');
                  setTimeout(function () {
@@ -129,6 +142,12 @@ $(function () {
                         window.location.reload();
                     }, 900)
                  */
+            }).fail(function () {
+                setErrorMsg('尼码， 服务器出现异常了，管理员赶紧过来看看！');
+            }).always(function () {
+                // reset status
+                $('#topic-comment-save').button('reset');
+                $('#submit-loading').css("display", "none");
             });
     });
 
