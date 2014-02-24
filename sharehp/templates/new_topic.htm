@@ -1,3 +1,4 @@
+{% load poll_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +32,7 @@
                     <button id="add-new-topic" class="btn btn-large btn-primary pull-right"
                             data-loading-text="正在提交" type="button">发布
                     </button>
+                    <img id="submit-loading" style="display:none;padding-top:5px" class="pull-right" src="http://sharehp.qiniudn.com/share/mini_loading.gif">
                 </div>
 
                 <div id='preview-img-box' class='pull-left' style="position: relative;">
@@ -40,9 +42,8 @@
 
         <div class="span4">
             <div class="background-wall">
-                <!-- FIXME hardcode-->
                 <a style="color: #333;" href="/group/{{ group.id }}/">
-                    <img class="img-rounded" src="/static/sharehp/img/group1.jpg">
+                    <img class="img-rounded" width="75" height="75" src="{{ group.avatar.big|static_url }}">
                     <h5> > {{ group.group_name }}</h5>
                 </a>
             </div>
