@@ -45,7 +45,7 @@
                     <p class="caption word-break">{{ res.title }}</p>
                 </div>
                 <!-- 内容 -->
-                <div id="detail-{{ res.id }}" class="text-center detail-res-title">
+                <div id="detail-{{ res.id }}" class="text-center detail-res-content">
                     {% ifequal  res.type "image" %}
                         <img width="{{ res.content.size.0 }}" height="{{ res.content.size.1 }}"
                              src="{{ res.content.url|static_url }}">
@@ -70,7 +70,6 @@
                         <a class="jiathis_button_qzone"></a>
                         <a class="jiathis_button_tqq"></a>
                     </div>
-                    <script type="text/javascript" src="http://v3.jiathis.com/code/jia.js" charset="utf-8"></script>
                     <!-- JiaThis Button END -->
                 </div>
             </div>
@@ -86,6 +85,7 @@
                         <button id="submit-res-comment" class="btn btn-primary pull-right" data-loading-text="正在提交"
                                 type="button">发布评论
                         </button>
+                        <img id="submit-loading" style="display: none" class="pull-right" src="http://sharehp.qiniudn.com/share/mini_loading.gif">
                     {% else %}
                         <textarea id="res-comment-content" rows="2" class="btn-block" readonly="readonly"
                                   placeholder="添加评论"></textarea>
@@ -137,10 +137,10 @@
 
 <script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
 <script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+<script src="http://v3.jiathis.com/code/jia.js" type="text/javascript" charset="utf-8"></script>
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 <script src="/static/sharehp/js/detail.js"></script>
-<script src="http://v3.jiathis.com/code/jia.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>
 
