@@ -37,7 +37,7 @@
                                         <span class="pull-right">{{ tc.floor }}L</span>
                                     </div>
                                 </div>
-                                <p class="word-break">{{ tc.content|white_space|linebreaksbr }}</p>
+                                <p class="word-break topic-text" >{{ tc.content|white_space|linebreaksbr }}</p>
                                 {% if tc.attachment.exsit %}
                                     {% ifequal tc.attachment.type "image" %}
                                         <!-- FIXME hardcode -->
@@ -73,6 +73,7 @@
                                     data-loading-text="正在提交" type="button">
                                 发布
                             </button>
+                            <img id="submit-loading" style="display:none;padding-top:5px" class="pull-right" src="http://sharehp.qiniudn.com/share/mini_loading.gif">
                         </div>
                         <div id='preview-img-box' class='pull-left' style="position: relative;">
                         </div>
