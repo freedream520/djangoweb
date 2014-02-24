@@ -26,6 +26,9 @@ import urllib
 import os
 import forms
 import cache
+import logging
+
+logger = logging.getLogger('sharehp')
 
 # 分类页面
 def classify(request, tag):
@@ -107,6 +110,7 @@ def detail(request, tag, res_id):
         'content': json.loads(r.content),
         'comments': r.comments
     }
+
     # 评论信息
     comment_list = []
     cl = Resource_Comment.objects.filter(res_id=res_id, status='enabled').order_by('-gmt_create')
@@ -187,10 +191,11 @@ def group(request, group_id, order):
             'last_comment_date': prettydate.convert(t.gmt_modify)
         }
         topics.append(topic)
-    group = cache.get_group_info(group_id)
+
     topic_count = Group_Topic.objects.filter(group_id=group_id, status='enabled').count()
     pages = int(math.ceil(topic_count / (page_size * 1.0)))
     pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
+    group = cache.get_group_info(group_id)
 
     context = RequestContext(request, {'group': group,
                                        'topics': topics,
@@ -213,6 +218,7 @@ def group_topic(request, topic_id):
 
     comment_count = Topic_Comment.objects.filter(topic_id=topic_id).count()
     pages = int(math.ceil(comment_count / (page_size * 1.0)))
+    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
 
     tcs = Topic_Comment.objects.filter(topic_id=topic_id)[offset: offset + page_size]
     topic_comments = []
@@ -228,9 +234,9 @@ def group_topic(request, topic_id):
             'attachment': json.loads(tc.attachment),
         }
         topic_comments.append(topic_comment)
+
     topic = cache.get_topic_info(topic_id)
     group = cache.get_group_info_by_topicid(topic['id'])
-    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
 
     context = RequestContext(request, {'group': group,
                                        'topic': topic,
@@ -389,8 +395,9 @@ def change_avatar(request):
             image.qiniu_upload(crop_result['mid']['path'], avatar_mid_url)
             avatar_small_url = 'user/avater/' + crop_result['small']['name']
             image.qiniu_upload(crop_result['small']['path'], avatar_small_url)
-        except QiniuUploadFileError:  # FIXME
-            # TODO Log error
+
+        except QiniuUploadFileError:
+            logger.error('Fail to change avatar, uploading image error!\n')
             return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
         avatar_info = {
@@ -459,7 +466,7 @@ def add_new_resource(request):
             thumbnail, content = _deal_video_resource(video_info)
 
     except QiniuUploadFileError:
-        # TODO log error:
+        logger.error('Fail to add new resource, uploading image error!\n')
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
     # 保存资源
@@ -542,7 +549,7 @@ def add_new_topic(request, group_id):
         try:
             image.qiniu_upload(attach_path, attach_url)
         except QiniuUploadFileError:
-            # TODO log error
+            logger.error('Fail to add new topic, uploading image error!\n')
             return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
     attachment = _gen_attachment_info(has_attach, attach_type, attach_path, attach_url)
@@ -599,7 +606,7 @@ def add_topic_comment(request, topic_id):
         try:
             image.qiniu_upload(attach_path, attach_url)
         except QiniuUploadFileError:
-            # TODO log error
+            logger.error('Fail to add topic comment, uploading image error!\n')
             return HttpResponse(json.dumps({'success': -1, 'error_msg': "服务器异常，请稍后再试!"}))
 
     attachment = _gen_attachment_info(has_attach, attach_type, attach_path, attach_url)
@@ -630,10 +637,12 @@ def upload_image(request):
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请选择一个图片!"}))
 
     upload_file = request.FILES['file']
-    # 检查上传文件类型 TODO
     # 检查上传图片大小
     if upload_file.size >= 1024 * 1024:  # 1M
         return HttpResponse(json.dumps({'success': -1, 'error_msg': "请上传小于1M的图片!"}))
+    # 检查上传文件类型
+    if not image.get_image_type(upload_file):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "对不起，你上传的图片类型不支持!"}))
     # 保存临时文件
     filename = common.unique_filename()
     filepath = default_storage.save(os.path.join(config.get_config('SHAREHP_UPLOAD_DIR'), filename),
