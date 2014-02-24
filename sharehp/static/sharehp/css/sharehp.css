@@ -74,7 +74,7 @@ a {
 }
 
 .detail-res-footer {
-    margin-top: 12px;
+    margin-top: 10px;
     line-height: 25px;
 }
 
@@ -513,6 +513,11 @@ a {
 
 .word-break {
     word-break: break-all
+}
+
+.topic-text {
+    font-size: 14px;
+    line-height: 25px;
 }
 
 .highlight {
