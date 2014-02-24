@@ -113,7 +113,6 @@ $(function () {
                     $('#url-input-box').css("display", "block");
                     $('#video-err-msg').text(result.error_msg);
                 }
-
             });
     });
 
@@ -129,7 +128,10 @@ $(function () {
             return;
         }
 
+        // loading status
         $('#submit-new-resource').button('loading');
+        $('#submit-loading').css("display", "inline");
+
         $.post('/api/add_new_resource/',
             {
                 title: title,
@@ -143,9 +145,16 @@ $(function () {
                 } else {
                     setErrorMsg(result.error_msg);
                 }
+
+            }).fail(function () {
+                setErrorMsg('尼码， 服务器出现异常了，管理员赶紧过来看看！');
+            }).always(function () {
+                // reset status
                 $('#submit-new-resource').button('reset');
+                $('#submit-loading').css("display", "none");
             })
     });
+
     function setErrorMsg(msg){
         $('#error-msg').text(msg).css('display', 'block');
     }
