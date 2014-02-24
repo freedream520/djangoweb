@@ -136,7 +136,11 @@
                     init_jcrop(img_width, img_height);
                     $('#submit-avatar').bind('click', function () {
                         // check post param FIXME
+
+                        // loading status ...
                         $('#submit-avatar').button('loading');
+                        $('#submit-loading').css("display", "inline");
+
                         $.post('/account/change_avatar/',
                                 {
                                     attach: attach_id,
@@ -154,7 +158,13 @@
                                     } else {
                                         setErrorMsg(result.error_msg);
                                     }
+
+                                }).fail(function () {
+                                    setErrorMsg('尼码， 服务器出现异常了，管理员赶紧过来看看！');
+                                }).always(function () {
+                                    // reset status
                                     $('#submit-avatar').button('reset');
+                                    $('#submit-loading').css("display", "none");
                                 });
                     });
                     $('#crop-avatar').css('display', 'block');
@@ -173,7 +183,7 @@
             target_image = '<img style="width: 300px" src=' + src + ' id="target"/>';
         }
         return '<div id="crop-avatar" class="article clearfix" style="display: none"><h4>请拖动矩形框选择裁剪区域</h4><table><tr><td>' + target_image + '</td><td>' + '<img width="40" src="http://res.baoz.cn/imgs/arrow-1.png"></td><td><div style="margin-left:8px;width:100px;height:100px;overflow:hidden;">' +
-                preview_image + '</div></td></tr></table><br><button id="submit-avatar" class="btn btn-large btn-primary" type="button" data-loading-text="正在提交">确定</button></div>'
+                preview_image + '</div></td></tr></table><br><button id="submit-avatar" class="btn btn-large btn-primary" type="button" data-loading-text="正在提交">确定</button><img id="submit-loading" style="display:none;padding-top:5px"  src="http://sharehp.qiniudn.com/share/mini_loading.gif"></div>'
 
 
     }
