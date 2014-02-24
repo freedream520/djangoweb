@@ -7,6 +7,7 @@ from utils import common
 from exception import IllegalArgumentError
 import redis
 import json
+import logging
 
 # 获取redis配置
 _redis_server_ip = config.get_config('REDIS_SERVER_IP', )
@@ -18,6 +19,7 @@ if not _redis_server_ip or not _redis_server_port:
 # redis实例
 _redisIns = redis.StrictRedis(host=_redis_server_ip, port=_redis_server_port, db=0)
 
+logger = logging.getLogger('sharehp')
 
 def _get(key):
     return _redisIns.get(key)  # if key not exist, return None
@@ -104,7 +106,7 @@ def get_user_info(user_id):
             }
             _hmset(key, user_info)
         except User.DoesNotExist, e:
-            # TODO log error
+            logger.error('Fail to find user by id: ' + str(user_id))
             user_info = {}
     return user_info
 
@@ -119,7 +121,7 @@ def del_user_info(user_id):
 def get_user_nickname(user_id):
     user_info = get_user_info(user_id)
     if not user_info:
-        # TODO log error
+        logger.error('Fail to get user_info by id: ' + str(user_id))
         return ''
     else:
         return user_info.get('nickname', '')
@@ -130,7 +132,7 @@ def get_user_nickname(user_id):
 def get_user_avatar(user_id):
     user_info = get_user_info(user_id)
     if not user_info:
-        # TODO log error
+        logger.error('Fail to get user_info by id: ' + str(user_id))
         return {}
     else:
         avatar_info = user_info.get('avatar', None)
@@ -153,7 +155,7 @@ def get_user_naa(user_id):
             return user_info.get('nickname', ''), json.loads(avatar_info)
 
 
-# 获取小组列表信息 FIXME
+# 获取小组列表信息 FIXME no cache
 def get_group_list():
     key = 'group-list'
     group_list = _lrange(key, 0, -1)  # all group
