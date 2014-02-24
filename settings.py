@@ -1,6 +1,6 @@
 # Django settings for sharehp project.
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -137,19 +137,32 @@ WSGI_APPLICATION = "djangoweb.wsgi.application"
 # more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(module)s %(name)s: %(message)s'
+        },
+    },
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': '/home/diaocow/error.log',
+        'log_file': {
+                'level':'DEBUG',
+                'class':'logging.handlers.RotatingFileHandler',
+                'filename': '/home/diaocow/run/sharehp.log',
+                'maxBytes': 1024*1024*50, # 50 MB
+                'backupCount': 5,
+                'formatter':'standard',
         },
     },
     'loggers': {
-        'sharehp': {
-            'handlers': ['file'],
+        'django.request': {
+            'handlers': ['log_file'],
             'level': 'ERROR',
-            'propagate': True,
-            },
-    },
+            'propagate': False
+        },
+        'sharehp': {
+            'handlers': ['log_file'],
+            'level': 'INFO',
+            'propagate': False
+        },
+    }
 }
