@@ -5,6 +5,10 @@ import math
 import urllib
 import qiniu_helper
 import imghdr
+import os
+
+# 水印图片路径
+_long_jpg= ''.join([os.path.dirname(__file__), '/long.jpg'])
 
 # 保存url图片
 def save_img(img_url, target_dir):
@@ -57,7 +61,7 @@ def thumbnail_img(filename, filedir):
         new_img.thumbnail(resize, Image.ANTIALIAS)
         # 简单判断是否为长图
         if crop and ori_height - new_height > resize[0]:
-            with open('long.jpg', 'rb') as lf:  # FIXME path
+            with open(_long_jpg, 'rb') as lf:  # FIXME path
                 mark_img = Image.open(lf)
                 new_img.paste(mark_img, (new_img.size[0] - mark_img.size[0], new_img.size[1] - mark_img.size[1]),
                               mark_img.convert('RGBA'))
