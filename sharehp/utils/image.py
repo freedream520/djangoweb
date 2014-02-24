@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import common
-import Image
+from PIL import Image
 import math
 import urllib
 import qiniu_helper
