@@ -33,6 +33,7 @@ function vote(node, action) {
                 action == "up" ? self.next().addClass('vote-disabled') : self.prev().addClass('vote-disabled')
 
             } else if (result.error_type = "require_login") {
+                $('#require-login').remove();
                 $('body').append(require_login_modal());
                 $('#require-login').modal('show')
             }
