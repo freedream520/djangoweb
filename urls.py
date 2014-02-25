@@ -38,8 +38,7 @@ urlpatterns = patterns('',
     url(r'^api/upload_image/$', views.upload_image),
     url(r'^api/upload_video/$', views.upload_video),
     url(r'^api/detail/(\d+)/add_new_comment/$', views.add_resource_comment),
-
-
+    url(r'^api/resource_vote/(\d+)/(up|down)/$', views.resource_vote),
 
     url(r'^bops/tag/$', bops_views.classify),
     url(r'^bops/detail/(\d+)/$', bops_views.detail),
