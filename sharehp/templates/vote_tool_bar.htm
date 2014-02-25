@@ -1,0 +1,28 @@
+{% ifequal res.vote_type "up" %}
+    <a id="up-{{ res.id }}" href="###" class="btn-icon vote-up vote-enabled ">
+        <i class="icon-hand-up icon-large"></i>
+        <span>{{ res.up }}</span>
+    </a>
+    <a id="down-{{ res.id }}" href="###" class="btn-icon vote-down vote-disabled">
+        <i class="icon-hand-down icon-large"></i>
+        <span>{{ res.down }}</span>
+    </a>
+    {% else %}{% ifequal res.vote_type "down" %}
+        <a id="up-{{ res.id }}" href="###" class="btn-icon vote-up vote-disabled">
+            <i class="icon-hand-up icon-large"></i>
+            <span>{{ res.up }}</span>
+        </a>
+        <a id="down-{{ res.id }}" href="###" class="btn-icon vote-down vote-enabled">
+            <i class="icon-hand-down icon-large"></i>
+            <span>{{ res.down }}</span>
+        </a>
+    {% else %}
+        <a id="up-{{ res.id }}" href="###" class="btn-icon vote-up">
+            <i class="icon-hand-up icon-large"></i>
+            <span>{{ res.up }}</span>
+        </a>
+        <a id="down-{{ res.id }}" href="###" class="btn-icon vote-down">
+            <i class="icon-hand-down icon-large"></i>
+            <span>{{ res.down }}</span>
+        </a>
+    {% endifequal %}{% endifequal %}
