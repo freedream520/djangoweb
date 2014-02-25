@@ -7,6 +7,7 @@
     <title>不正常人类研究中心</title>
     <link href="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"
           media="screen">
+    <link href="/static/sharehp/css/font-awesome.min.css" rel="stylesheet" media="screen">
     <link href="/static/sharehp/css/sharehp.css" rel="stylesheet" media="screen">
 </head>
 <body>
@@ -19,7 +20,7 @@
             <div class="background-wall clearfix">
                 <!-- 作者-->
                 <div class="detail-res-author">
-                    <a href="#"><img class="img-circle" width="36" height="36"
+                    <a href="#"><img class="img-circle" style="width:36px; height:36px"
                                      src="{{ res.avatar.mid|static_url }}"></a>
                     <a href="/user/{{ res.user_id }}/" style="padding-left: 5px;">{{ res.nickname }}</a>
                     <span class="create-time" style="padding-left: 3px;">{{ res.create_date }}</span>
@@ -47,7 +48,7 @@
                 <!-- 内容 -->
                 <div id="detail-{{ res.id }}" class="text-center detail-res-content">
                     {% ifequal  res.type "image" %}
-                        <img width="{{ res.content.size.0 }}" height="{{ res.content.size.1 }}"
+                        <img style="width:{{ res.content.size.0 }}px; height:{{ res.content.size.1 }}px;"
                              src="{{ res.content.url|static_url }}">
                     {% else %}
                         <object width="575" height="440">
@@ -62,6 +63,7 @@
                     {% endifequal %}
                 </div>
                 <div class="detail-res-footer">
+                    {% include "vote_tool_bar.htm" with res=res %}
                     <!-- JiaThis Button BEGIN -->
                     <div class="jiathis_style_24x24 pull-right">
                         <a class="jiathis_button_tsina"></a>
@@ -85,7 +87,8 @@
                         <button id="submit-res-comment" class="btn btn-primary pull-right" data-loading-text="正在提交"
                                 type="button">发布评论
                         </button>
-                        <img id="submit-loading" style="display: none" class="pull-right" src="http://sharehp.qiniudn.com/share/mini_loading.gif">
+                        <img id="submit-loading" style="display: none" class="pull-right"
+                             src="http://sharehp.qiniudn.com/share/mini_loading.gif">
                     {% else %}
                         <textarea id="res-comment-content" rows="2" class="btn-block" readonly="readonly"
                                   placeholder="添加评论"></textarea>
@@ -105,7 +108,7 @@
                             {% for comment in commentList %}
                                 <li class="media res-comment-item">
                                     <a class="pull-left" href="#">
-                                        <img class="img-circle" width="36" height="36"
+                                        <img class="img-circle" style="width:36px; height:36px"
                                              src="{{ comment.avatar.mid|static_url }}">
                                     </a>
 
@@ -141,6 +144,12 @@
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
 <script src="/static/sharehp/js/detail.js"></script>
+<script>
+    var jiathis_config = {
+        summary: "{{ res.title }}",
+        pic: "{{ res.thumbnail.url|static_url }}"
+    }
+</script>
 </body>
 </html>
 
