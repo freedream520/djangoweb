@@ -23,8 +23,8 @@ class Resource(models.Model):
     thumbnail = models.CharField(max_length=255)
     # 资源内容 {'url': ..., 'size': ...}
     content = models.CharField(max_length=10240)
-    good = models.IntegerField()
-    bad = models.IntegerField()
+    up = models.IntegerField()
+    down = models.IntegerField()
     comments = models.IntegerField()
     status = models.CharField(max_length=32)
 
