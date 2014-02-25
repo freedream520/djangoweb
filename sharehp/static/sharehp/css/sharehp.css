@@ -50,10 +50,10 @@ div {
     color: #b69e88;
 }
 
-a {
+a, a:hover {
     text-decoration: none;
     outline: none;
-    color: #9e8c7b;
+    color: #b69e88;
 }
 
 .detail-res-author {
@@ -151,7 +151,7 @@ textarea {
 .btn-icon {
     display: inline-block;
     border: 1px solid #e8e8e8;
-    margin-right: 3px;
+    margin-right: 5px;
     padding-left: 5px;
     padding-right: 5px;
     border-radius: 3px;
@@ -332,9 +332,9 @@ textarea {
     max-height: 300px
 }
 
-a:hover {
+a.btn-icon:hover {
     text-decoration: none;
-    color: #b69e88;
+    border-color: #cccccc;
 }
 
 a {
@@ -543,4 +543,45 @@ a {
     border-bottom: 1px solid rgb(238, 238, 238);
     line-height: 1.5;
     color: rgb(136, 136, 136);
+}
+
+a:hover.vote-disabled {
+    text-decoration: none;
+    border-color: #e1e1e1;
+    cursor: default;
+    color: #e1e1e1;
+}
+
+.vote-disabled, a:hover.vote-disabled {
+    cursor: default;
+    color: #e1e1e1;
+}
+
+a:hover.vote-enabled {
+    text-decoration: none;
+    cursor: default;
+}
+
+.vote-enabled, {
+    cursor: default;
+}
+
+.require-login-header {
+    padding: 0 18px;
+    -webkit-border-radius: 0 0 6px 6px;
+    -moz-border-radius: 0 0 6px 6px;
+    border-radius: 0 0 6px 6px;
+}
+.require-login-body {
+    padding: 10px 20px;
+}
+
+.require-login-footer {
+    background: #ffffff;
+    border: none;
+}
+
+#require-login {
+    top: 30%;
+    width: 400px;
 }
