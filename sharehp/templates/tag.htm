@@ -21,7 +21,7 @@
             {% for res in resList %}
                 <div class="background-wall clearfix">
                     <div class="item-author">
-                        <a href="#"><img width="36" height="36" class="img-circle"
+                        <a href="#"><img style="width: 36px; height: 36px" class="img-circle"
                                          src="{{ res.avatar.mid|static_url }}"></a>
                         <a href="/user/{{ res.user_id }}/" style="padding-left: 5px;">{{ res.nickname }}</a>
                         <span class="create-time" style="padding-left: 3px;">{{ res.create_date }}发布</span>
@@ -34,7 +34,7 @@
                         <a href="/detail/{{ tag }}/{{ res.id }}/" style="position:relative"
                            target="_blank">
                             <div style="position:relative;">
-                                <img width="{{ res.thumbnail.size.0 }}" height="{{ res.thumbnail.size.1 }}"
+                                <img style="width: {{ res.thumbnail.size.0 }}px; height: {{ res.thumbnail.size.1 }}px"
                                      src="{{ res.thumbnail.url|static_url }}">
                                 {% ifequal tag "video" %}
                                     <span class="play-icon"></span>
@@ -43,6 +43,7 @@
                         </a>
                     </div>
                     <div class="item-footer">
+                        {% include "vote_tool_bar.htm" with res=res %}
                         <a class="pull-right btn-icon" href="/detail/{{ tag }}/{{ res.id }}/"
                            target="_blank"><i class="icon-comment"></i> 评论({{ res.comments }})</a>
                     </div>
