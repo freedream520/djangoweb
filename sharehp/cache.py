@@ -21,6 +21,7 @@ _redisIns = redis.StrictRedis(host=_redis_server_ip, port=_redis_server_port, db
 
 logger = logging.getLogger('sharehp')
 
+
 def _get(key):
     return _redisIns.get(key)  # if key not exist, return None
 
@@ -46,13 +47,23 @@ def _hgetall(key):
 
 
 # set type
-def _sadd(key, values):
-    return _redisIns.sadd(key, values)
+def _sadd(key, values, timeout=-1):
+    ret = _redisIns.sadd(key, values)
+    if timeout and timeout > 0:
+        _redisIns.expire(key, timeout)
+    return ret
+
+
+def _sismember(key, value):
+    return _redisIns.sismember(key, value)
 
 
 # list type
-def _lpush(key, values):
-    return _redisIns.lpush(key, values)
+def _lpush(key, values, timeout=-1):
+    ret = _redisIns.lpush(key, values)
+    if timeout and timeout > 0:
+        _redisIns.expire(key, timeout)
+    return ret
 
 
 # if key not exist, return empty list []
@@ -206,7 +217,7 @@ def get_group_info(group_id):
             group_info = {}
 
     if group_info:
-        group_info['avatar']=json.loads(group_info['avatar'])
+        group_info['avatar'] = json.loads(group_info['avatar'])
     return group_info
 
 
@@ -265,13 +276,48 @@ def set_video_info(id, value, timeout=3600):
 def get_video_info(id):
     if not id:
         raise IllegalArgumentError("video id can't be None!")
-    key = 'video-info:' + id
+    key = 'video-info:' + str(id)
     return _hgetall(key)
 
 
-def resource_vote(res_id, who):
-    if not res_id or not who:
-        return  # keep silent
+# 检测资源是否被赞/鄙过
+def has_resource_voted(res_id, user_id):
+    if not res_id or not user_id:
+        raise IllegalArgumentError("res_id or user_id can't be None!")
+    key = 'vote:' + str(res_id)
+    return _sismember(key, user_id)
 
-    return _sadd(res_id, who)  # if duplicate, return False
+
+# 对资源进行赞/鄙,返回值True表示操作成功
+def resource_vote(res_id, user_id, action):
+    if action not in ('up', 'down'):
+        raise IllegalArgumentError("action param is illegal!")
+    if not user_id or not res_id:
+        raise IllegalArgumentError("user_id or res_id can't be None!")
+
+    if has_resource_voted(res_id, user_id):
+        return False
+    else:
+        # TODO redis 事务接口
+        return _sadd('vote:' + str(res_id), user_id) and _sadd('vote_' + str(action) + ':' + str(res_id), user_id)
+
+
+# user_id can be None!!!
+def resource_vote_type(res_id, user_id):
+    if not res_id:
+        raise IllegalArgumentError("res_id can't be None!")
+    if not user_id or not has_resource_voted(res_id, user_id):
+        return None
+
+    vote_up_key = 'vote_up:' + str(res_id)
+    if _sismember(vote_up_key, user_id):
+        return 'up'
+    else:
+        return 'down'
+
+
+
+
+
+
 
