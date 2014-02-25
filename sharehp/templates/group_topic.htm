@@ -26,7 +26,7 @@
                                 <div class="clearfix"
                                      style="padding:4px; background-color: #f0f6f3; margin-bottom:12px;">
                                     <a class="pull-left" href="#">
-                                        <img width="28" height="28" class="img-circle"
+                                        <img style="width:28px; height:28px" class="img-circle"
                                              src="{{ tc.avatar.small|static_url }}">
                                     </a>
 
@@ -37,11 +37,11 @@
                                         <span class="pull-right">{{ tc.floor }}L</span>
                                     </div>
                                 </div>
-                                <p class="word-break topic-text" >{{ tc.content|white_space|linebreaksbr }}</p>
+                                <p class="word-break topic-text">{{ tc.content|white_space|linebreaksbr }}</p>
                                 {% if tc.attachment.exsit %}
                                     {% ifequal tc.attachment.type "image" %}
                                         <!-- FIXME hardcode -->
-                                        <img width="{{ tc.attachment.size.0 }}" height="{{ tc.attachment.size.1 }}"
+                                        <img style="width:{{ tc.attachment.size.0 }}px; height:{{ tc.attachment.size.1 }}px;"
                                              src="{{ tc.attachment.url|static_url }}">
                                     {% endifequal %}
                                 {% endif %}
@@ -73,7 +73,8 @@
                                     data-loading-text="正在提交" type="button">
                                 发布
                             </button>
-                            <img id="submit-loading" style="display:none;padding-top:5px" class="pull-right" src="http://sharehp.qiniudn.com/share/mini_loading.gif">
+                            <img id="submit-loading" style="display:none;padding-top:5px" class="pull-right"
+                                 src="http://sharehp.qiniudn.com/share/mini_loading.gif">
                         </div>
                         <div id='preview-img-box' class='pull-left' style="position: relative;">
                         </div>
