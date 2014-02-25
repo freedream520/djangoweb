@@ -51,7 +51,10 @@ def classify(request, tag):
             'title': r.title,
             'type': r.type,
             'thumbnail': json.loads(r.thumbnail),  # json
-            'comments': r.comments
+            'comments': r.comments,
+            'vote_type': cache.resource_vote_type(r.id, _get_current_userid(request)),
+            'up': r.up,
+            'down': r.down
         }
         res_list.append(res)
     # side bar
@@ -108,7 +111,11 @@ def detail(request, tag, res_id):
         'title': r.title,
         'type': r.type,
         'content': json.loads(r.content),
-        'comments': r.comments
+        'thumbnail': json.loads(r.thumbnail),  # jiathis
+        'comments': r.comments,
+        'vote_type': cache.resource_vote_type(r.id, _get_current_userid(request)),
+        'up': r.up,
+        'down': r.down
     }
 
     # 评论信息
@@ -479,8 +486,8 @@ def add_new_resource(request):
         type=type,
         thumbnail=thumbnail,
         content=content,
-        good=0,
-        bad=0,
+        up=0,
+        down=0,
         comments=0,
         status='enabled'
     )
@@ -677,6 +684,27 @@ def upload_video(request):
     return HttpResponse(json.dumps({'success': 0, 'data': data}))
 
 
+# 对资源进行赞/鄙
+def resource_vote(request, res_id, action):
+    if not _check_login(request):
+        return HttpResponse(json.dumps({'success': -1, 'error_type': 'require_login', 'error_msg': "请登录后操作!"}))
+    if not Resource.objects.filter(id=res_id).exists():
+        return HttpResponse(json.dumps({'success': -1, 'error_type': 'resource_not_exist', 'error_msg': "资源不存在!"}))
+
+    vote_result = cache.resource_vote(res_id, _get_current_userid(request), action)
+    if vote_result:
+        # FIXME transcation
+        if action == "up":
+            cnt = Resource.objects.get(id=res_id).up
+            Resource.objects.filter(id=res_id).update(gmt_modify=datetime.now(), up=cnt + 1)
+        else:
+            cnt = Resource.objects.get(id=res_id).down
+            Resource.objects.filter(id=res_id).update(gmt_modify=datetime.now(), down=cnt + 1)
+        return HttpResponse(json.dumps({'success': 0, 'data': {}}))
+    else:
+        return HttpResponse(json.dumps({'success': -1, 'error_type': 'operation_failed', 'error_msg': "操作失败!"}))
+
+
 #-------------------------------------------
 # 内部接口
 #-------------------------------------------
@@ -824,4 +852,6 @@ def _deal_video_resource(video_info):
 
 def _get_page_url(server_host, path):
     return ''.join([server_host, path, '?page='])
+
+
 
