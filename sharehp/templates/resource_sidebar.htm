@@ -1,6 +1,6 @@
 {% load poll_extras %}
 <div class="background-wall clearfix">
-    <img class="img-rounded pull-left" width="270" height="106" src="http://sharehp.qiniudn.com/weixin.png">
+    <img class="img-rounded pull-left" style=" width:270px; height:106px" src="http://sharehp.qiniudn.com/weixin.png">
 </div>
 
 <div class="background-wall">
@@ -8,7 +8,7 @@
     {% for group in groups %}
         <div class="clearfix" style="margin-bottom: 10px">
             <a href="/group/{{ group.id }}/" title="{{ group.group_ori_desc }}">
-                <img class="pull-left img-rounded" width="60" height="60" src="{{ group.avatar.mid|static_url }}">
+                <img class="pull-left img-rounded" style="width:60px; height:60px" src="{{ group.avatar.mid|static_url }}">
 
                 <div class="group-desc">
                     <h5 style="color: #4A4A4A;margin: 6px 0;">{{ group.group_name }}</h5>
