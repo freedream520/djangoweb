@@ -1,11 +1,11 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
-from sharehp.utils import image
 from bs4 import BeautifulSoup
 import db
 import urllib
 import json
 import re
+import image
 
 _GRAP_URL = 'http://zhan.renren.com/fengzimen?from=template'
 _SPIDE_RESOURCE_DIR = "/home/diaocow/workspace/djangoweb/sharehp/static/sharehp/tmp/"
