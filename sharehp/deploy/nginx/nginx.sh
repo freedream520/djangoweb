@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 NGINX_CONFIG_FILE="$(pwd)/nginx.conf"
 NGINX_PID_FILE="$(pwd)/nginx.pid"
