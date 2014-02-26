@@ -57,7 +57,10 @@ def classify(request):
         }
         res_list.append(res)
 
-    context = RequestContext(request, {'resList': res_list, 'curPage': page, 'pages': pages})
+    context = RequestContext(request, {'resList': res_list,
+                                       'curPage': page,
+                                       'pages': pages,
+                                       'pageUrl': pageUrl})
     return render_to_response('bops/tag.htm', context)
 
 
