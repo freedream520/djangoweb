@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 UWSGI_PID_FILE="$(pwd)/uwsgi.pid"
 UWSGI_INI_FILE="$(pwd)/uwsgi.ini"
