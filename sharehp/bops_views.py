@@ -31,7 +31,9 @@ def require_admin(view):
                 return render_to_response('bops/no_privilege.htm')
             else:
                 return view(request, *args, **kwargs)
+
     return new_view
+
 
 # 分页显示待审核的资源
 def classify(request):
@@ -78,6 +80,7 @@ def detail(request, res_id):
     context = RequestContext(request, {'res': res})
     return render_to_response('bops/detail.htm', context)
 
+
 # 处理资源（pass or reject）
 def process(request, result):
     if result == 'reject':
@@ -96,7 +99,7 @@ def process(request, result):
         normal_path = content['normal_path']
         thumbnail_name = content['thumbnail_name']
         thumbnail_path = content['thumbnail_path']
-        url = content.get('url', '') # only video resource has this property
+        url = content.get('url', '')  # only video resource has this property
 
         if type == "image":
             thumbnail_url = 'resource/thumbnail/' + thumbnail_name
@@ -131,7 +134,7 @@ def process(request, result):
         resource = Resource(
             gmt_create=current_date,
             gmt_modify=current_date,
-            user_id=2, # FIXME
+            user_id=_get_current_userid(request),
             title=title,
             type=type,
             thumbnail=thumbnail,
@@ -159,5 +162,12 @@ def _get_page(request):
         page = 1
     return page
 
+
 def _get_page_url(server_host, path):
     return ''.join([server_host, path, '?page='])
+
+
+# 获取当前登录用户的user_id(没有登录返回None)
+def _get_current_userid(request):
+    if request.xmanuser['login']:
+        return request.xmanuser['id']
