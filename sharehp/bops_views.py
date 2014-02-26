@@ -40,7 +40,7 @@ def classify(request):
     offset = (int(page) - 1) * page_size
 
     # status == 'process' 待审核
-    rl = Spide_Resource.objects.filter(status='process').order_by('-gmt_create')[offset: offset + page_size]
+    rl = Spide_Resource.objects.filter(status='process').order_by('gmt_create')[offset: offset + page_size]
     res_count = Spide_Resource.objects.filter(status='process').count()
     pages = int(math.ceil(res_count / (page_size * 1.0)))
 
