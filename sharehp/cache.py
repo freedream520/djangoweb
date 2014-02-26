@@ -173,7 +173,6 @@ def get_group_list():
     group_list = _lrange(key, 0, -1)
 
     if not group_list:
-        data = []  # each element is jsonstr
         groups = Group.objects.all()
         for group in groups:
             avatar = json.loads(group.avatar)
@@ -183,13 +182,11 @@ def get_group_list():
                 'group_name': group.group_name,
                 'group_desc': _relength(group.group_desc, 13),
                 'group_ori_desc': group.group_desc,
-                'big_avatar': avatar.big,
-                'mid_avatar': avatar.mid,
+                'big_avatar': avatar['big'],
+                'mid_avatar': avatar['mid'],
             }
             group_list.append(g)
-            data.append(json.dumps(g))
-        _lpush(key, data)
-
+            _lpush(key, json.dumps(g))
     else:
         for i, group in enumerate(group_list):
             group_list[i] = json.loads(group)  # jsonstr => dict
