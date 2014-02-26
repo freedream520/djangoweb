@@ -43,6 +43,7 @@ def classify(request):
     rl = Spide_Resource.objects.filter(status='process')[offset: offset + page_size]
     res_count = Spide_Resource.objects.filter(status='process').count()
     pages = int(math.ceil(res_count / (page_size * 1.0)))
+    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
 
     res_list = []
     for r in rl:
@@ -154,3 +155,6 @@ def _get_page(request):
     if not page or page <= 0:
         page = 1
     return page
+
+def _get_page_url(server_host, path):
+    return ''.join([server_host, path, '?page='])
