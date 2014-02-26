@@ -8,15 +8,30 @@ from models import Resource
 from datetime import datetime
 from utils import image
 from utils import prettydate
+from utils import config
 import exceptions
 import json
 import math
 import cache
+import urllib
 
 
 #==========================================================
 # 后台系统 TODO 剥离
 #==========================================================
+
+def require_admin(view):
+    def new_view(request, *args, **kwargs):
+        if not request.xmanuser['login']:
+            return_url = urllib.urlencode(
+                {'return_url': config.get_config('SHAREHP_SERVER_HOST') + request.get_full_path()})
+            return HttpResponseRedirect('/login/?' + return_url)
+        else:
+            if not 'diaocow@qq.com' == request.xmanuser['email']:  # FIXME hard code
+                return render_to_response('bops/no_privilege.htm')
+            else:
+                return view(request, *args, **kwargs)
+    return new_view
 
 # 分页显示待审核的资源
 def classify(request):
@@ -117,8 +132,8 @@ def process(request, result):
             type=type,
             thumbnail=thumbnail,
             content=content,
-            good=0,
-            bad=0,
+            up=0,
+            down=0,
             comments=0,
             status='enabled'
         )
