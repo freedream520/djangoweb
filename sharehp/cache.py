@@ -166,23 +166,34 @@ def get_user_naa(user_id):
             return user_info.get('nickname', ''), json.loads(avatar_info)
 
 
-# 获取小组列表信息 FIXME no cache
+# 获取小组列表信息
 def get_group_list():
     key = 'group-list'
-    group_list = _lrange(key, 0, -1)  # all group
+    # get all data
+    group_list = _lrange(key, 0, -1)
+
     if not group_list:
-        group_list = []
+        data = []  # each element is jsonstr
         groups = Group.objects.all()
         for group in groups:
+            avatar = json.loads(group.avatar)
             g = {
                 'id': group.id,
                 'create_date': group.gmt_create.strftime('%Y-%m-%d'),
                 'group_name': group.group_name,
                 'group_desc': _relength(group.group_desc, 13),
                 'group_ori_desc': group.group_desc,
-                'avatar': json.loads(group.avatar)
+                'big_avatar': avatar.big,
+                'mid_avatar': avatar.mid,
             }
             group_list.append(g)
+            data.append(json.dumps(g))
+        _lpush(key, data)
+
+    else:
+        for i, group in enumerate(group_list):
+            group_list[i] = json.loads(group)  # jsonstr => dict
+
     return group_list
 
 
