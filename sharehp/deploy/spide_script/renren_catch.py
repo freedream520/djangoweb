@@ -42,8 +42,8 @@ def main(pages):
         url = _GRAP_URL + '&page=' + str(i)
         html_doc = urllib.urlopen(url).read()
         if html_doc:
+            soup = BeautifulSoup(html_doc)
             try:
-                soup = BeautifulSoup(html_doc)
                 # ============================================================
                 # 采集视频
                 # ============================================================
@@ -67,6 +67,10 @@ def main(pages):
                         print '成功爬取视频资源!'
                         _VIDEO_CNT = _VIDEO_CNT + 1
 
+            except Exception, err:
+                print '[VideoError] ' + str(err)
+
+            try:
                 # ============================================================
                 # 采集图片
                 # ============================================================
@@ -95,7 +99,7 @@ def main(pages):
                             _IMAGE_CNT = _IMAGE_CNT + 1
 
             except Exception, err:
-                print err
+                print '[ImageError] ' + str(err)
         else:
             print '[Error] No data for dealing ...'
     else:
