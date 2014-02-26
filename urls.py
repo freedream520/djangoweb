@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns , url
 from djangoweb.sharehp import views
 from djangoweb.sharehp import bops_views
 from djangoweb.sharehp.views import require_login
+from djangoweb.sharehp.bops_views import require_admin
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -40,8 +41,8 @@ urlpatterns = patterns('',
     url(r'^api/detail/(\d+)/add_new_comment/$', views.add_resource_comment),
     url(r'^api/resource_vote/(\d+)/(up|down)/$', views.resource_vote),
 
-    url(r'^bops/tag/$', bops_views.classify),
-    url(r'^bops/detail/(\d+)/$', bops_views.detail),
+    url(r'^bops/tag/$', require_admin(bops_views.classify)),
+    url(r'^bops/detail/(\d+)/$', require_admin(bops_views.detail)),
     url(r'^bops/resource/(pass|reject)/$', bops_views.process),
 )
 
