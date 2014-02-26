@@ -8,7 +8,7 @@
     {% for group in groups %}
         <div class="clearfix" style="margin-bottom: 10px">
             <a href="/group/{{ group.id }}/" title="{{ group.group_ori_desc }}">
-                <img class="pull-left img-rounded" style="width:60px; height:60px" src="{{ group.avatar.mid|static_url }}">
+                <img class="pull-left img-rounded" style="width:60px; height:60px" src="{{ group.mid_avatar|static_url }}">
 
                 <div class="group-desc">
                     <h5 style="color: #4A4A4A;margin: 6px 0;">{{ group.group_name }}</h5>
