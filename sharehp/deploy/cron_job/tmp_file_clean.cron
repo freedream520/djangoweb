@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#===========================
+# clean tmp file 3 days ago
+#===========================
+
+TMP_FILE_DIR=""
+
+if [ "x${TMP_FILE_DIR}" == "x" ]; then
+    echo "please config TMP_FILE_DIR variable!"
+    exit -1
+fi
+
+FILES=$(find ${TMP_FILE_DIR} -type f -mtime +3)
+
+for file in ${FILE}; do
+    echo "$file"
+done
+
+
+

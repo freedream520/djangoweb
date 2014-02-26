@@ -1,0 +1,10 @@
+#!/bin/sh
+
+SCRIPT_FILE=""
+
+if [ "x${SCRIPT_FILE}" == "x" ]; then
+    echo "please config SCRIPT_FILE variable!"
+    exit -1
+fi
+
+/usr/bin/python ${SCRIPT_FILE}
