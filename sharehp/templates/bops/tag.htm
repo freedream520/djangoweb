@@ -15,7 +15,10 @@
     <!-- 左边资源list-->
     <div class="span8">
         {% for res in resList %}
-            <div class="background-wall clearfix">
+            <div id="{{ res.id }}" class="background-wall clearfix">
+                <div class="error-msg alert alert-error fade in"
+                     style="display: none; padding: 2px 35px 2px 8px; margin-bottom: 12px;">
+                </div>
                 <div class="item-content">
                     <p class="caption word-break">
                         {{ res.title }}
@@ -31,29 +34,61 @@
                     </a>
                 </div>
                 <div class="item-footer">
-                    <form action="/bops/resource/pass/" method="post" style="margin: 0">
-                        <input type="hidden" name="resid" value="{{ res.id }}">
-                        <button class="btn btn-success pull-right" type="submit">通过</button>
-                    </form>
-                    <form action="/bops/resource/reject/" method="post" style="margin: 0">
-                        <input type="hidden" name="resid" value="{{ res.id }}">
-                        <button class="btn btn-danger" type="submit">拒绝</button>
-                    </form>
+                    <button class="process-pass btn btn-success pull-right" data-loading-text="正在通过">通过</button>
+                    <button class="process-reject btn btn-danger" data-loading-text="正在拒绝">拒绝</button>
                 </div>
             </div>
         {% endfor %}
-        <div id="pagination"></div>
     </div>
-
+    <br>
+    <br>
+    <br>
 </div>
-{% include 'footer.htm' %}
 <script src="http://cdn.staticfile.org/jquery/2.0.0/jquery.min.js"></script>
 <script src="http://cdn.staticfile.org/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-<script src="/static/sharehp/js/bootstrap-paginator.js"></script>
 <script src="/static/sharehp/js/jquery.scrollUp.min.js"></script>
 <script src="/static/sharehp/js/common.js"></script>
-<script type="text/javascript">
-    initPaginator({{curPage}}, {{pages}}, "{{ pageUrl }}")
+<script>
+    // 通过资源
+    $(".process-pass").bind("click", function () {
+        var self = $(this);
+        var res_id = self.parent().parent().attr('id');
+        process(self, res_id, 'pass');
+    });
+    // 拒绝资源
+    $(".process-reject").bind("click", function () {
+        var self = $(this);
+        var res_id = self.parent().parent().attr('id');
+        process(self, res_id, 'reject');
+    });
+
+    function process(node, res_id, action) {
+        // loading
+        node.button('loading');
+
+        $.post('/bops/resource/' + res_id + '/' + action + '/',
+                function (data, status) {
+                    data = JSON.parse(data);
+                    if (data.success == 0) {
+                        $('div#' + res_id).remove();
+                    } else {
+                        setErrorMsg(res_id, data.error_msg);
+                    }
+
+                }).fail(function () {
+                    setErrorMsg(res_id, '尼码， 服务器出现异常了，管理员赶紧过来看看！');
+                }).always(function () {
+                    if (node.length > 0) {
+                        node.button('reset');
+                    }
+                    node = null;
+                });
+    }
+
+    function setErrorMsg(id, msg) {
+        $('div#' + id + ' .error-msg').text(msg).css('display', 'block');
+    }
+
 </script>
 </body>
 </html>
