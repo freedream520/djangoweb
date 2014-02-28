@@ -43,7 +43,7 @@ urlpatterns = patterns('',
 
     url(r'^bops/tag/$', require_admin(bops_views.classify)),
     url(r'^bops/detail/(\d+)/$', require_admin(bops_views.detail)),
-    url(r'^bops/resource/(pass|reject)/$', bops_views.process),
+    url(r'^bops/resource/(\d+)/(pass|reject)/$', bops_views.process),
 )
 
 
