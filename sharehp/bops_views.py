@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
@@ -27,25 +27,17 @@ def require_admin(view):
                 {'return_url': config.get_config('SHAREHP_SERVER_HOST') + request.get_full_path()})
             return HttpResponseRedirect('/login/?' + return_url)
         else:
-            if not 'diaocow@qq.com' == request.xmanuser['email']:  # FIXME hard code
+            if not _is_admin(request):
                 return render_to_response('bops/no_privilege.htm')
             else:
                 return view(request, *args, **kwargs)
-
     return new_view
 
 
-# 分页显示待审核的资源
+# 显示待审核的资源
 def classify(request):
-    page_size = 10
-    page = _get_page(request)
-    offset = (int(page) - 1) * page_size
-
     # status == 'process' 待审核
-    rl = Spide_Resource.objects.filter(status='process').order_by('-id')[offset: offset + page_size]
-    res_count = Spide_Resource.objects.filter(status='process').count()
-    pages = int(math.ceil(res_count / (page_size * 1.0)))
-    pageUrl = _get_page_url(config.get_config('SHAREHP_SERVER_HOST'), request.path)
+    rl = Spide_Resource.objects.filter(status='process').order_by('-id')
 
     res_list = []
     for r in rl:
@@ -59,10 +51,7 @@ def classify(request):
         }
         res_list.append(res)
 
-    context = RequestContext(request, {'resList': res_list,
-                                       'curPage': page,
-                                       'pages': pages,
-                                       'pageUrl': pageUrl})
+    context = RequestContext(request, {'resList': res_list})
     return render_to_response('bops/tag.htm', context)
 
 
@@ -82,13 +71,17 @@ def detail(request, res_id):
 
 
 # 处理资源（pass or reject）
-def process(request, result):
+def process(request, res_id, result):
+    if not _is_admin(request):
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "请使用管理员账号登陆后操作!"}))
+    if not Spide_Resource.objects.filter(id=res_id).exists():
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "你操作的资源可能已经被删除!"}))
+    if not Spide_Resource.objects.get(id=res_id).status == 'process':
+        return HttpResponse(json.dumps({'success': -1, 'error_msg': "该资源已经被处理过，请刷新页面!"}))
+
     if result == 'reject':
-        res_id = request.POST.get('resid')
         Spide_Resource.objects.filter(id=res_id).update(status='reject')
     else:
-        res_id = request.POST.get('resid')
-        Spide_Resource.objects.filter(id=res_id).update(status='pass')
         r = Spide_Resource.objects.get(id=res_id)
 
         type = r.type
@@ -146,10 +139,9 @@ def process(request, result):
         )
         resource.save()
         cache.set_last_resource_id(resource.id)
+        Spide_Resource.objects.filter(id=res_id).update(status='pass')
 
-
-    # upload
-    return HttpResponseRedirect('/bops/tag/')
+    return HttpResponse(json.dumps({'success': 0, 'data': {}}))
 
 
 def _get_page(request):
@@ -171,3 +163,7 @@ def _get_page_url(server_host, path):
 def _get_current_userid(request):
     if request.xmanuser['login']:
         return request.xmanuser['id']
+
+def _is_admin(request):
+    if request.xmanuser['login']:
+        return 'diaocow@qq.com' == request.xmanuser['email']  # FIXME hard code
