@@ -1,6 +1,7 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
+from datetime import datetime
 import db
 import urllib
 import json
@@ -9,8 +10,8 @@ import image
 
 _GRAP_URL = 'http://zhan.renren.com/fengzimen?from=template'
 _SPIDE_RESOURCE_DIR = "/home/diaocow/workspace/djangoweb/sharehp/static/sharehp/tmp/"
-_IMAGE_CNT = 1
-_VIDEO_CNT = 1
+_IMAGE_CNT = 0
+_VIDEO_CNT = 0
 
 
 def _deal_resource(image_url):
@@ -25,19 +26,38 @@ def _deal_resource(image_url):
         'thumbnail_name': thumbnail_image_info['name']
     }
 
+
 def _get_video_id(pattern, text):
     m = re.search(pattern, text)
     if m:
         return m.group(1)
 
+
 def _get_video_info(video_id):
-    return urllib.urlopen('http://vxml.56.com/json/%s/?src=site' % video_id).read()
+    # inner function
+    def _inner(video_id):
+        return urllib.urlopen('http://vxml.56.com/json/%s/?src=site' % video_id).read()
+
+    # default value
+    video_info = {}
+    # try 3 times
+    for times in range(3):
+        result = _inner(video_id)
+        if result:
+            result = json.loads(result)
+            if result.get('info', None):
+                video_info = result
+                break
+
+    return video_info
+
 
 # ============================================================
 # 开始采集
 # ============================================================
 def main(pages):
-    global  _IMAGE_CNT, _VIDEO_CNT # FIXME
+    global _IMAGE_CNT, _VIDEO_CNT
+
     for i in range(pages):
         url = _GRAP_URL + '&page=' + str(i)
         html_doc = urllib.urlopen(url).read()
@@ -52,20 +72,27 @@ def main(pages):
                     for td in target_divs:
                         # 资源标题
                         title = td.find('h2')['title']
-                        # 获取视频信息
                         video_src = td.find('embed')['src'].strip()
+                        # FIXME url
                         video_id = _get_video_id('http://player.56.com/renrenshare_(.*).swf/1030_.*.swf', video_src)
-                        video_img = json.loads(_get_video_info(video_id))['info']['bimg']
-                        # 不抓取重复资源
-                        if db.exists(video_src):
+                        if not video_id:
                             continue
+                        # 获取视频信息
+                        video_info = _get_video_info(video_id)
+                        if video_info.get('info', None):
+                            video_img = video_info['info']['bimg']
+                            # 不抓取重复资源
+                            if db.exists(video_src):
+                                continue
 
-                        resource_info = _deal_resource(video_img)
-                        resource_info['url'] = video_src
-                        resource = db.SpideResource(title, 'video', json.dumps(resource_info), video_src)
-                        db.save(resource)
-                        print '成功爬取视频资源!'
-                        _VIDEO_CNT = _VIDEO_CNT + 1
+                            resource_info = _deal_resource(video_img)
+                            resource_info['url'] = video_src
+                            resource = db.SpideResource(title, 'video', json.dumps(resource_info), video_src)
+                            db.save(resource)
+                            print '成功爬取视频资源!'
+                            _VIDEO_CNT = _VIDEO_CNT + 1
+                        else:
+                            print 'Fail to get video_info by: %s %s' % (video_src, video_id)
 
             except Exception, err:
                 print '[VideoError] ' + str(err)
@@ -103,9 +130,9 @@ def main(pages):
         else:
             print '[Error] No data for dealing ...'
     else:
-        print '爬取资源结束，共抓取图片资源%d个， 视频资源%d个...!' %(_IMAGE_CNT, _VIDEO_CNT)
+        print '============================================================================='
+        print '%s 爬取资源结束，共抓取图片资源%d个， 视频资源%d个...!' % (
+        datetime.now().strftime('%Y-%m-%d %H:%M:%S'), _IMAGE_CNT, _VIDEO_CNT)
 
 
-
-
-main(1)
+main(10)
